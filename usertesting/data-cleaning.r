@@ -1,174 +1,196 @@
-# install.packages("readxl")
-library(readxl)
-# install.packages("janitor")
+library(readr)
 library(janitor)
-
-# how to read multiple xlsx worksheets within one file
-# https://rpubs.com/tf_peterson/readxl_import 
-
-# FOR RURAL MOBILE
-# excel_path <- "UserTesting-Test_Metrics-4888412-RURAL-MOBILE-1SCHOOL-QA-EDITED-2023-11-09-085638.xlsx"
-# file_name = "RURAL-MOBILE-1SCHOOL-QA-2023-11.csv"
-# FOR RURAL DESKTOP
-# excel_path <- "UserTesting-Test_Metrics-4888007-RURAL-DESKTOP-1SCHOOL-QA-EDITE-2023-11-09-085708.xlsx"
-# file_name = "RURAL-DESKTOP-1SCHOOL-QA-2023-11.csv"
-# FOR BOTH RURALS
-# remote_school_name = rep(list("Wenatchee"), 16)
-# community_row_num = 34
-
-# FOR SUBURBAN MOBILE
-# excel_path <- "UserTesting-Test_Metrics-4888685-SUBURBAN-MOBILE-1SCHOOL-QA-EDI-2023-11-09-085658.xlsx"
-# file_name = "SUBURBAN-MOBILE-1SCHOOL-QA-2023-11.csv"
-# FOR SUBURBAN DESKTOP
-# excel_path <- "UserTesting-Test_Metrics-4888681-SUBURBAN-DESKTOP-1SCHOOL-QA-ED-2023-11-09-085603.xlsx"
-# file_name = "SUBURBAN-DESKTOP-1SCHOOL-QA-2023-11.csv"
-# FOR BOTH SUBURBANS
-# remote_school_name = rep(list("Kentwood High School"), 16)
-# community_row_num = 35
-
-# FOR URBAN MOBILE
-# excel_path <- "UserTesting-Test_Metrics-4888686-URBAN-MOBILE-1SCHOOL-QA-EDITED-2023-11-09-085551.xlsx"
-# file_name = "URBAN-MOBILE-1SCHOOL-QA-2023-11.csv"
-# FOR URBAN DESKTOP
-excel_path <- "UserTesting-Test_Metrics-4888688-URBAN-DESKTOP-1SCHOOL-QA-EDITE-2023-11-09-085619.xlsx"
-file_name = "URBAN-DESKTOP-1SCHOOL-QA-2023-11.csv"
-# FOR BOTH URBANS
-remote_school_name = rep(list("Cleveland High School"), 16)
-community_row_num = 36
-
-# grabbing info from file
-details <- read_excel(path = excel_path, sheet = "Session details")
-metrics <- read_excel(path = excel_path, sheet = "Metrics")
-
-# DETAILS
-username = details[7,]
-test_id = details[9,]
-time_completed = details[12,]
-video_link = details[13,]
-# "Children"
-kids = details[17,]
-# "Device"
-device = details[18,]
-# Annual household income
-income = details[20,]
-# "How would you describe the community you live in?"
-community = details[community_row_num,]
-community[1] <- `How would you describe the community you live in?`
-
-# "In the past 12 months, have you looked at any rating or ranking data about K-12 schools in the US?"
-looked_data = details[44,]
-looked_data[1] <- "Has looked at data?"
-not_looked_data = details[45,]
-not_looked_data[1] <- "Has not looked at data?"
-
-# "Do you currently have kid(s) in:"
-es_kids = details[47,]
-es_kids[1] <- "Has elementary schoolers?"
-ms_kids = details[48,]
-
-ms_kids[1] <- "Has middle schoolers?"
-hs_kids = details[49,]
-hs_kids[1] <- "Has high schoolers?"
-
-# "Are any of your kid(s) currently attending a different K-12 school than they were attending 12 months ago?"
-changed = details[52,]
-not_changed = details[53,]
-not_changed[1] <- "Has not changed K-12 schools?"
-# NOW LOOKING AT METRICS SHEET
-# "Next, please think of your youngest child who is currently in K-12 school. What is the name of their school?"
-multiple_campuses = metrics[15,][1:16]
-school_name = metrics[19,][1:16]
-# metrics
-time = metrics[23,][1:16]
-clicks = metrics[24,][1:16]
-pages = metrics[25,][1:16]
-unique_pages = metrics[26,][1:16]
-# responses from user
-set_location = metrics[29,][1:16]
-success = metrics[33,][1:16]
-attempts = metrics[36,][1:16]
-ease = metrics[40,][1:16]
-location = metrics[43,][1:16]
-school_link = metrics[46,][1:16]
-loading = metrics[49,][1:16]
-ux = metrics[52,][1:16]
-accessibility = metrics[56,][1:16]
-relevance = metrics[60,][1:16]
-filter_usage = metrics[64,][1:16]
-filters_tools = metrics[68,][1:16]
-
-# note Qs that are remote
-remote_time = metrics[80,][1:16]
-remote_time[1] <- paste("Remote: ", remote_time[[1]])
-remote_clicks = metrics[81,][1:16]
-remote_clicks[1] <- paste("Remote: ", remote_clicks[[1]])
-remote_pages = metrics[82,][1:16]
-remote_pages[1] <- paste("Remote: ", remote_pages[[1]])
-remote_unique_pages = metrics[83,][1:16]
-remote_unique_pages[1] <- paste("Remote: ", remote_unique_pages[[1]])
-# and the responses
-remote_set_location = metrics[86,][1:16]
-remote_set_location[1] <- paste("Remote: ", remote_set_location[[1]])
-remote_success = metrics[90,][1:16]
-remote_success[1] <- paste("Remote: ", remote_success[[1]])
-remote_attempts = metrics[93,][1:16]
-remote_attempts[1] <- paste("Remote: ", remote_attempts[[1]])
-remote_ease = metrics[97,][1:16]
-remote_ease[1] <- paste("Remote: ", remote_ease[[1]])
-remote_location = metrics[101,][1:16]
-remote_location[1] <- paste("Remote: ", remote_location[[1]])
-remote_school_link = metrics[105,][1:16]
-remote_school_link[1] <- paste("Remote: ", remote_school_link[[1]])
-remote_loading = metrics[108,][1:16]
-remote_loading[1] <- paste("Remote: ", remote_loading[[1]])
-remote_ux = metrics[112,][1:16]
-remote_ux[1] <- paste("Remote: ", remote_ux[[1]])
-remote_accessibility = metrics[116,][1:16]
-remote_accessibility[1] <- paste("Remote: ", remote_accessibility[[1]])
-remote_relevance = metrics[120,][1:16]
-remote_relevance[1] <- paste("Remote: ", remote_relevance[[1]])
-remote_filter_usage = metrics[124,][1:16]
-remote_filter_usage[1] <- paste("Remote: ", remote_filter_usage[[1]])
-remote_filters_tools = metrics[128,][1:16]
-remote_filters_tools[1] <- paste("Remote: ", remote_filters_tools[[1]])
-# final question
-prior_usage = metrics[132,][1:16]
+library(tidyverse)
+library(ggplot2)
+library(likert) 
 
 
+# read in data
+rural_desktop_one <- read_csv("RURAL-DESKTOP-1SCHOOL-QA-2023-11.csv")  %>% 
+    mutate(`Remote:  ATTEMPTS: How many searches or queries did you make before you found the correct school? For example, if you typed in "SMS" and couldn't find the school, but typed "Springfield Middle School" and found the school, then select "2".`
+         =as.character(`Remote:  ATTEMPTS: How many searches or queries did you make before you found the correct school? For example, if you typed in "SMS" and couldn't find the school, but typed "Springfield Middle School" and found the school, then select "2".`), 
+         `ATTEMPTS: How many searches or queries did you make before you found the correct school? For example, if you typed in "SMS" and couldn't find the school, but typed "Springfield Middle School" and found the school, then select "2".`
+         =as.character(`ATTEMPTS: How many searches or queries did you make before you found the correct school? For example, if you typed in "SMS" and couldn't find the school, but typed "Springfield Middle School" and found the school, then select "2".`)) %>% 
+  janitor::clean_names()
+colnames(rural_desktop_one) <- lapply(names(rural_desktop_one), function(x) substr(x, start = 1, stop = 25))
+
+rural_mobile_one <- read_csv("RURAL-MOBILE-1SCHOOL-QA-2023-11.csv") %>% 
+  mutate(`Remote:  ATTEMPTS: How many searches or queries did you make before you found the correct school? For example, if you typed in "SMS" and couldn't find the school, but typed "Springfield Middle School" and found the school, then select "2".`
+         =as.character(`Remote:  ATTEMPTS: How many searches or queries did you make before you found the correct school? For example, if you typed in "SMS" and couldn't find the school, but typed "Springfield Middle School" and found the school, then select "2".`), 
+         `ATTEMPTS: How many searches or queries did you make before you found the correct school? For example, if you typed in "SMS" and couldn't find the school, but typed "Springfield Middle School" and found the school, then select "2".`
+         =as.character(`ATTEMPTS: How many searches or queries did you make before you found the correct school? For example, if you typed in "SMS" and couldn't find the school, but typed "Springfield Middle School" and found the school, then select "2".`)) %>% 
+  janitor::clean_names()
+colnames(rural_mobile_one) <- lapply(names(rural_mobile_one), function(x) substr(x, start = 1, stop = 25))
+
+suburban_mobile_one <- read_csv("SUBURBAN-MOBILE-1SCHOOL-QA-2023-11.csv") %>% 
+  mutate(`Remote:  ATTEMPTS: How many searches or queries did you make before you found the correct school? For example, if you typed in "SMS" and couldn't find the school, but typed "Springfield Middle School" and found the school, then select "2".`
+         =as.character(`Remote:  ATTEMPTS: How many searches or queries did you make before you found the correct school? For example, if you typed in "SMS" and couldn't find the school, but typed "Springfield Middle School" and found the school, then select "2".`), 
+         `ATTEMPTS: How many searches or queries did you make before you found the correct school? For example, if you typed in "SMS" and couldn't find the school, but typed "Springfield Middle School" and found the school, then select "2".`
+         =as.character(`ATTEMPTS: How many searches or queries did you make before you found the correct school? For example, if you typed in "SMS" and couldn't find the school, but typed "Springfield Middle School" and found the school, then select "2".`)) %>% 
+  janitor::clean_names()
+colnames(suburban_mobile_one) <- lapply(names(suburban_mobile_one), function(x) substr(x, start = 1, stop = 25))
+
+suburban_desktop_one <- read_csv("SUBURBAN-DESKTOP-1SCHOOL-QA-2023-11.csv") %>% 
+  mutate(`Remote:  ATTEMPTS: How many searches or queries did you make before you found the correct school? For example, if you typed in "SMS" and couldn't find the school, but typed "Springfield Middle School" and found the school, then select "2".`
+         =as.character(`Remote:  ATTEMPTS: How many searches or queries did you make before you found the correct school? For example, if you typed in "SMS" and couldn't find the school, but typed "Springfield Middle School" and found the school, then select "2".`), 
+         `ATTEMPTS: How many searches or queries did you make before you found the correct school? For example, if you typed in "SMS" and couldn't find the school, but typed "Springfield Middle School" and found the school, then select "2".`
+         =as.character(`ATTEMPTS: How many searches or queries did you make before you found the correct school? For example, if you typed in "SMS" and couldn't find the school, but typed "Springfield Middle School" and found the school, then select "2".`)) %>% 
+  janitor::clean_names()
+colnames(suburban_desktop_one) <- lapply(names(suburban_desktop_one), function(x) substr(x, start = 1, stop = 25))
+
+# combine them into one big df
+rural_df <- bind_rows(rural_desktop_one, rural_mobile_one)
+suburban_df <- bind_rows(suburban_mobile_one, suburban_desktop_one)
+df <- bind_rows(rural_df, suburban_df)
+
+# PIE CHARTS
+# looking at responses to 
+title_graph = "ux_did_you_encounter_any_"
+p <- pie_chart(df, title_graph)
+p
+
+# graph same question across all mobile v. all desktop
+facet_var = "device"
+# graph same question, but urban v. suburban v. rural
+facet_var = "how_would_you_describe_th"
+# p <- pie_chart(df, title_graph, facet_var)
+# p
+
+# BAR GRAPH
+# bar graph (strings: NA, 1, 2, 3, 4, 5+) to the question 
+# `ATTEMPTS: How many searches or queries did you make before you found the correct school? For example, if you typed in "SMS" and couldn't find the school, but typed "Springfield Middle School" and found the school, then select "2".`
+# TODO
+
+# graph same question across all mobile v. all desktop
+facet_var = "device"
+# graph same question, but urban v. suburban v. rural
+facet_var = "how_would_you_describe_th"
 
 
-# then make a dataframe
-# method: https://www.programiz.com/r/examples/convert-list-to-dataframe
+# STACKED BAR GRAPHS
+# likert (stacked bar graph) to the question
+# EASE
+bar_x = "how_would_you_describe_th"
+bar_fill = "ease_how_easily_were_you_"
+p <- stacked_bar(df, bar_x, bar_fill) 
+p
 
-# (username, test_id, time_completed, video_link, es_kids, ms_kids, hs_kids, looked_data, not_looked_data, kids, device, income, community,school_name, time, clicks, pages, unique_pages,relevance, accuracy, location, filters_tools, loading, ux, accessibility, school_link)
-# remote_school_name, remote_time, remote_clicks, remote_pages, remote_unique_pages, remote_relevance, remote_accuracy, remote_location, remote_filters_tools, remote_loading,remote_ux, remote_accessibility, remote_school_link
+# `SUCCESS: How confident are you that you found the correct school?`
+# TODO
+bar_x = "how_would_you_describe_th"
+bar_fill = "success_how_confident_are"
+p <- stacked_bar(df, bar_x, bar_fill) 
+p
 
-list_data <- list(unlist(username), unlist(test_id), unlist(time_completed), 
-                  unlist(video_link), unlist(kids), unlist(device), unlist(income), 
-                  unlist(community), unlist(looked_data), unlist(not_looked_data), 
-                  unlist(es_kids), unlist(ms_kids), unlist(hs_kids), unlist(changed), 
-                  unlist(not_changed), unlist(multiple_campuses), unlist(school_name), 
-                  # datapoints
-                  unlist(time), unlist(clicks), unlist(pages), unlist(unique_pages), 
-                  # user responses
-                  unlist(set_location), unlist(success), unlist(attempts), unlist(ease),
-                  unlist(location), unlist(school_link), unlist(loading), unlist(ux), 
-                  unlist(accessibility), unlist(relevance), unlist(filter_usage), 
-                  unlist(filters_tools), 
-                  # remote data points
-                  unlist(remote_time), unlist(remote_clicks), unlist(remote_pages), unlist(remote_unique_pages), 
-                  # and for remote section
-                  unlist(remote_set_location), unlist(remote_success), unlist(remote_attempts), unlist(remote_ease),
-                  unlist(remote_location), unlist(remote_school_link), unlist(remote_loading), unlist(remote_ux), 
-                  unlist(remote_accessibility), unlist(remote_relevance), unlist(remote_filter_usage), 
-                  unlist(remote_filters_tools), 
-                  # final question
-                  unlist(prior_usage))
+# graph same question across all mobile v. all desktop
+facet_var = "device"
+# TODO
 
-df <- as.data.frame(list_data)
+# graph same question, but urban v. suburban v. rural
+facet_var = "how_would_you_describe_th"
+# TODO
 
-# use first row as column names
-df <- df %>% row_to_names(row_number = 1)
+# bar graphs for `SUCCESS` split based on their answer to:
+# EASE
+facet_var = "ease_how_easily_were_you_"
+# LOCATION
+facet_var = "location_some_k_12_school"
 
-write.csv(df, file_name, row.names=FALSE)
+# time, clicks, pages, unique_pages,
+hist(df$`Time on task (seconds)`)
+hist(df$`Clicks`)
+hist(df$`Pages`)
+hist(df$`Unique pages`)
+
+summarized_df <- function(df, title_graph, facet_var) {
+  summarized_df <- df %>% 
+    rename(title_graph = all_of(title_graph)) %>% 
+    group_by(title_graph) %>% 
+    summarize(count=n()) %>% 
+    mutate(prop = count / sum(count) *100) %>%
+    mutate(ypos = cumsum(prop)- 0.5*prop ) %>% 
+    mutate(title_graph=substr(title_graph, 1, 20))
+  return summarized_df
+}
+
+test <- function() {
+  fake_df <- data.frame(
+    Community = c("Rural", "Rural", "Rural", "Rural", "Suburban", "Suburban", "Suburban", "Suburban", "Urban", "Urban", "Urban", "Urban"),
+    Ease = c("very easy", "easy", "neutral", "hard", "very easy", "very easy", "very easy", "very easy", "easy", "easy", "very easy", "very easy")
+    # , Device = c("Computer", "Computer", "Mobile", "Mobile", "Device", "Device", "Computer", "Computer", "Computer", "Computer", "Mobile", "Computer")
+    )
+  
+  # Print the created data frame
+  print(fake_df)
+  
+  bar_x <- "Community"
+  bar_fill <- "Ease"
+  # attribute_c <- "Device"
+  
+  summary_df <- fake_df %>%
+    group_by_at(vars(!!bar_x, !!bar_fill)) %>%
+    summarise(Count = n())
+  
+  print(summary_df)
+  
+  ggplot(summary_df, aes(x = !!as.symbol(bar_x), y = Count, fill = as.factor(!!as.symbol(bar_fill)))) +
+    geom_bar(stat = "identity") +
+    labs(title = "Distribution of Ease in Communities",
+         x = bar_x,
+         y = "Count",
+         fill = bar_fill) +
+    theme_minimal()
+}
+
+stacked_bar <- function(df, bar_x, bar_fill) {
+  bar_x = "how_would_you_describe_th"
+  bar_fill = "ease_how_easily_were_you_"
+  # following this tutorial: https://www.statology.org/stacked-barplot-in-r/
+  df <- bind_rows(rural_df, suburban_df)
+  
+  summary_df <- df %>%
+    group_by_at(vars(!!bar_x, !!bar_fill)) %>%
+    summarise(Count = n())
+
+  # make sure the bar graph is for strings; check if worried # print(summary_df)
+  summary_df[[bar_fill]] <- as.character(summary_df[[bar_fill]])
+  print(summary_df)
+  
+  ggplot(summary_df, aes(x = !!as.symbol(bar_x), y = Count, fill = as.factor(!!as.symbol(bar_fill)))) +
+    geom_bar(stat = "identity") +
+    labs(title = "Distribution of Ease in Communities",
+         x = bar_x,
+         y = "Count",
+         fill = bar_fill) +
+    theme_minimal()
+
+  return(p)
+}
+
+
+
+pie_chart <- function(df, title_graph) {
+  title_graph = "ux_did_you_encounter_any_"
+  pie_df <- df %>% 
+    rename(title_graph = all_of(title_graph)) %>% 
+    group_by(title_graph) %>% 
+    summarize(count=n()) %>% 
+    mutate(prop = count / sum(count) *100) %>%
+    mutate(ypos = cumsum(prop)- 0.5*prop ) %>% 
+    mutate(title_graph=substr(title_graph, 1, 20))
+
+  p <- ggplot(pie_df, aes(x="", y=prop)) +
+    geom_bar(stat="identity", width=1, color="white") +
+    coord_polar("y", start=0) +
+    theme_void() + 
+    theme(legend.position="none") +
+    
+    geom_text(aes(y = ypos, label = 
+                    title_graph
+                    ), color = "white", size=6) +
+    scale_fill_brewer(palette="Set1")
+#   + facet_wrap(~as.factor(facet_var))
+  
+    return(p)
+}
 
