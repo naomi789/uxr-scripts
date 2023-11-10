@@ -147,6 +147,12 @@ title_graph = "initially set location to"
 p <- string_bar(df, bar_x, comparing_on, title_graph)
 p
 
+# pie chart locations
+bar_fill = "if_you_set_the_location_f"
+title_graph = "set location as"
+p <- pie_chart(df, bar_fill, title_graph)
+p
+
 # FUNCTIONS: 
 compare_histogram <- function(df, bar_x, comparing_on, title_graph) {
   summary_df <- df %>%
@@ -193,7 +199,7 @@ stacked_bar <- function(df, bar_x, bar_fill, title_graph) {
   # and if the strings are too long, cut them shorter
   summary_df[[bar_fill]] <- substr(summary_df[[bar_fill]], 1, 10)
   
-  p <- ggplot(summary_df, aes(x = !!as.symbol(bar_x), y = Count, fill = device)) +
+  p <- ggplot(summary_df, aes(x = !!as.symbol(bar_x), y = Count, fill = !!as.symbol(comparing_on))) +
     geom_bar(stat = "identity") +
     labs(title = title_graph,
          x = bar_x,
@@ -203,3 +209,22 @@ stacked_bar <- function(df, bar_x, bar_fill, title_graph) {
 
   return(p)
 }
+
+
+pie_chart <- function(df, bar_fill, title_graph) {
+  summary_df <- df %>%
+    group_by_at(vars(!!bar_fill)) %>%
+    summarise(Count = n()) %>%
+    mutate(Percentage = (Count / sum(Count)) * 100)
+
+  p <- ggplot(summary_df, aes(x = "", y = Percentage, fill = !!as.symbol(bar_fill))) +
+    geom_bar(stat = "identity", width = 1) +
+    coord_polar("y") +
+    labs(title = title_graph,
+         fill = bar_fill) +
+    theme_minimal() +
+    theme(legend.position = "bottom")
+
+  return(p)
+}
+
