@@ -53,6 +53,7 @@ device = details[18,]
 income = details[20,]
 # "How would you describe the community you live in?"
 community = details[community_row_num,]
+community[1] <- `How would you describe the community you live in?`
 
 # "In the past 12 months, have you looked at any rating or ranking data about K-12 schools in the US?"
 looked_data = details[44,]
