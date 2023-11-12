@@ -1,3 +1,9 @@
+# added manually:
+# ignore raw files from usertesting
+*.xlsx
+# ignore macbook stuff
+*.DS_Store
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
