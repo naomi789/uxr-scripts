@@ -227,4 +227,3 @@ pie_chart <- function(df, bar_fill, title_graph) {
 
   return(p)
 }
-
