@@ -125,7 +125,7 @@ p <- stacked_bar(df, bar_x, bar_fill, title_graph)
 p
 
 # graph ATTEMPTS and COMMUNITY
-bar_x = "device"
+bar_x = "how_would_you_describe_th"
 bar_fill = "attempts_how_many_searche"
 title_graph = "ATTEMPTS / COMMUNITY"
 p <- stacked_bar(df, bar_x, bar_fill, title_graph) 
@@ -212,20 +212,21 @@ stacked_bar <- function(df, bar_x, bar_fill, title_graph) {
   summary_df <- df %>%
     group_by_at(vars(!!bar_x, !!bar_fill)) %>%
     summarise(Count = n())
+  print(summary_df)
 
   # make sure the bar graph is for strings; check if worried # print(summary_df)
   summary_df[[bar_fill]] <- as.character(summary_df[[bar_fill]])  
   # and if the strings are too long, cut them shorter
   summary_df[[bar_fill]] <- substr(summary_df[[bar_fill]], 1, 10)
   
-  p <- ggplot(summary_df, aes(x = !!as.symbol(bar_x), y = Count, fill = !!as.symbol(comparing_on))) +
+  p <- ggplot(summary_df, aes(x = !!as.symbol(bar_x), y = Count, fill = !!as.symbol(bar_fill))) +
     geom_bar(stat = "identity") +
     labs(title = title_graph,
          x = bar_x,
          y = "Count",
          fill = bar_fill) +
     theme_minimal()
-
+  
   return(p)
 }
 
