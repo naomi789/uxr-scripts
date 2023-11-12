@@ -171,4 +171,3 @@ df <- as.data.frame(list_data)
 df <- df %>% row_to_names(row_number = 1)
 
 write.csv(df, file_name, row.names=FALSE)
-
