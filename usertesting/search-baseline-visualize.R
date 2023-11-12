@@ -38,10 +38,29 @@ suburban_desktop_one <- read_csv("SUBURBAN-DESKTOP-1SCHOOL-QA-2023-11.csv") %>%
   janitor::clean_names()
 colnames(suburban_desktop_one) <- lapply(names(suburban_desktop_one), function(x) substr(x, start = 1, stop = 25))
 
+urban_mobile_one <- read_csv("URBAN-MOBILE-1SCHOOL-QA-2023-11.csv") %>% 
+  mutate(`Remote:  ATTEMPTS: How many searches or queries did you make before you found the correct school? For example, if you typed in "SMS" and couldn't find the school, but typed "Springfield Middle School" and found the school, then select "2".`
+         =as.character(`Remote:  ATTEMPTS: How many searches or queries did you make before you found the correct school? For example, if you typed in "SMS" and couldn't find the school, but typed "Springfield Middle School" and found the school, then select "2".`), 
+         `ATTEMPTS: How many searches or queries did you make before you found the correct school? For example, if you typed in "SMS" and couldn't find the school, but typed "Springfield Middle School" and found the school, then select "2".`
+         =as.character(`ATTEMPTS: How many searches or queries did you make before you found the correct school? For example, if you typed in "SMS" and couldn't find the school, but typed "Springfield Middle School" and found the school, then select "2".`)) %>% 
+  janitor::clean_names()
+colnames(urban_mobile_one) <- lapply(names(urban_mobile_one), function(x) substr(x, start = 1, stop = 25))
+
+urban_desktop_one <- read_csv("URBAN-DESKTOP-1SCHOOL-QA-2023-11.csv") %>% 
+  mutate(`Remote:  ATTEMPTS: How many searches or queries did you make before you found the correct school? For example, if you typed in "SMS" and couldn't find the school, but typed "Springfield Middle School" and found the school, then select "2".`
+         =as.character(`Remote:  ATTEMPTS: How many searches or queries did you make before you found the correct school? For example, if you typed in "SMS" and couldn't find the school, but typed "Springfield Middle School" and found the school, then select "2".`), 
+         `ATTEMPTS: How many searches or queries did you make before you found the correct school? For example, if you typed in "SMS" and couldn't find the school, but typed "Springfield Middle School" and found the school, then select "2".`
+         =as.character(`ATTEMPTS: How many searches or queries did you make before you found the correct school? For example, if you typed in "SMS" and couldn't find the school, but typed "Springfield Middle School" and found the school, then select "2".`)) %>% 
+  janitor::clean_names()
+colnames(urban_desktop_one) <- lapply(names(urban_desktop_one), function(x) substr(x, start = 1, stop = 25))
+
+
+
 # combine them into one big df
 rural_df <- bind_rows(rural_desktop_one, rural_mobile_one)
 suburban_df <- bind_rows(suburban_mobile_one, suburban_desktop_one)
-df <- bind_rows(rural_df, suburban_df)
+urban_df <- bind_rows(urban_mobile_one, urban_desktop_one)
+df <- bind_rows(rural_df, suburban_df, urban_df)
 
 # NUMERIC
 # time, clicks, pages, unique_pages
