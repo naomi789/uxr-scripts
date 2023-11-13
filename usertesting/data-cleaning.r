@@ -7,14 +7,14 @@ library(janitor)
 # https://rpubs.com/tf_peterson/readxl_import 
 
 # FOR RURAL MOBILE
-# excel_path <- "UserTesting-Test_Metrics-4888412-RURAL-MOBILE-1SCHOOL-QA-EDITED-2023-11-09-085638.xlsx"
-# file_name = "RURAL-MOBILE-1SCHOOL-QA-2023-11.csv"
+excel_path <- "UserTesting-Test_Metrics-4888412-RURAL-MOBILE-1SCHOOL-QA-EDITED-2023-11-09-085638.xlsx"
+file_name = "RURAL-MOBILE-1SCHOOL-QA-2023-11.csv"
 # FOR RURAL DESKTOP
 # excel_path <- "UserTesting-Test_Metrics-4888007-RURAL-DESKTOP-1SCHOOL-QA-EDITE-2023-11-09-085708.xlsx"
 # file_name = "RURAL-DESKTOP-1SCHOOL-QA-2023-11.csv"
 # FOR BOTH RURALS
-# remote_school_name = rep(list("Wenatchee"), 16)
-# community_row_num = 34
+remote_school_name = rep(list("Wenatchee High School"), 16)
+community_row_num = 34
 
 # FOR SUBURBAN MOBILE
 # excel_path <- "UserTesting-Test_Metrics-4888685-SUBURBAN-MOBILE-1SCHOOL-QA-EDI-2023-11-09-085658.xlsx"
@@ -27,14 +27,14 @@ library(janitor)
 # community_row_num = 35
 
 # FOR URBAN MOBILE
-# excel_path <- "UserTesting-Test_Metrics-4888686-URBAN-MOBILE-1SCHOOL-QA-EDITED-2023-11-09-085551.xlsx"
+# excel_path <- "UserTesting-Test_Metrics-4888686-URBAN-MOBILE-1SCHOOL-QA-EDITED-2023-11-12-124114.xlsx"
 # file_name = "URBAN-MOBILE-1SCHOOL-QA-2023-11.csv"
 # FOR URBAN DESKTOP
-excel_path <- "UserTesting-Test_Metrics-4888688-URBAN-DESKTOP-1SCHOOL-QA-EDITE-2023-11-09-085619.xlsx"
-file_name = "URBAN-DESKTOP-1SCHOOL-QA-2023-11.csv"
+# excel_path <- "UserTesting-Test_Metrics-4888688-URBAN-DESKTOP-1SCHOOL-QA-EDITE-2023-11-12-124106.xlsx"
+# file_name = "URBAN-DESKTOP-1SCHOOL-QA-2023-11.csv"
 # FOR BOTH URBANS
-remote_school_name = rep(list("Cleveland High School"), 16)
-community_row_num = 36
+# remote_school_name = rep(list("Cleveland High School"), 16)
+# community_row_num = 36
 
 # grabbing info from file
 details <- read_excel(path = excel_path, sheet = "Session details")
@@ -53,7 +53,7 @@ device = details[18,]
 income = details[20,]
 # "How would you describe the community you live in?"
 community = details[community_row_num,]
-community[1] <- `How would you describe the community you live in?`
+community[1] <- "How would you describe the community you live in?"
 
 # "In the past 12 months, have you looked at any rating or ranking data about K-12 schools in the US?"
 looked_data = details[44,]
@@ -171,3 +171,4 @@ df <- as.data.frame(list_data)
 df <- df %>% row_to_names(row_number = 1)
 
 write.csv(df, file_name, row.names=FALSE)
+
