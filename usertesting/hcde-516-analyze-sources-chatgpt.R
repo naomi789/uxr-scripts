@@ -146,8 +146,3 @@ comparing_on = "study_version"
 bar_x = "avg_without_further_research"
 title_graph = paste("across\"", bar_x, "\", the response to: \"", bar_fill, "\"", sep = " ")
 compare_histogram(df, bar_x, comparing_on, title_graph, 1)
-# visualize the average
-comparing_on = "study_version"
-bar_x = "avg_without_further_research"
-title_graph = paste("across\"", bar_x, "\", the response to: \"", bar_fill, "\"", sep = " ")
-compare_histogram(df, bar_x, comparing_on, title_graph, 1)
