@@ -2,8 +2,13 @@
 # ignore raw files from usertesting
 *.xlsx
 *.csv
+
 # ignore macbook stuff
 *.DS_Store
+
+# ignore R stuff
+.RData
+.Rhistory
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
