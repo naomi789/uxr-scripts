@@ -48,6 +48,19 @@ get_first_char_as_numeric <- function(x) {x
 }
 
 
+# SET VARIABLES
+agree_color_scale <- c("5 - Strongly agree" = "darkgreen", 
+                       "4 - Agree" = "lightgreen", 
+                       "3 - Somewhat agree" = "grey", 
+                       "2 - Disagree" = "yellow", 
+                       "1 - Strongly disagree" = "red")
+likely_color_scale <- c("5 - Very likely" = "darkgreen", 
+                        "4 - Likely" = "lightgreen", 
+                        "3 - Somewhat likely" = "grey", 
+                        "2 - Not likely" = "yellow", 
+                        "1 - Not at all likely" = "red", 
+)
+
 # GET THE DATA
 t_file <- "usertesting/treatment.csv"
 t_df <- read_csv(t_file) %>% janitor::clean_names()
@@ -120,3 +133,4 @@ stacked_bar(df, bar_x, bar_fill, title_graph)
 bar_fill = "x3_without_further_research"
 title_graph = paste("across\"", bar_x, "\", the response to: \"", bar_fill, "\"", sep = " ")
 stacked_bar(df, bar_x, bar_fill, title_graph)
+
