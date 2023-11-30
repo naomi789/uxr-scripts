@@ -51,11 +51,11 @@ get_first_char_as_numeric <- function(x) {x
 
 
 # SET VARIABLES
-color_scale <- c("5" = "darkgreen", 
-                 "4" = "lightgreen", 
-                 "3" = "grey", 
-                 "2" = "yellow", 
-                 "1" = "red")
+color_scale <- c("5" = "#024E1B", 
+                 "4" = "#006B3E", 
+                 "3" = "#FFE733", 
+                 "2" = "#FF8C01", 
+                 "1" = "#ED2938")
 
 # GET THE DATA
 t_file <- "treatment.csv"
@@ -146,4 +146,8 @@ comparing_on = "study_version"
 bar_x = "avg_without_further_research"
 title_graph = paste("across\"", bar_x, "\", the response to: \"", bar_fill, "\"", sep = " ")
 compare_histogram(df, bar_x, comparing_on, title_graph, 1)
-
+# visualize the average
+comparing_on = "study_version"
+bar_x = "avg_without_further_research"
+title_graph = paste("across\"", bar_x, "\", the response to: \"", bar_fill, "\"", sep = " ")
+compare_histogram(df, bar_x, comparing_on, title_graph, 1)
