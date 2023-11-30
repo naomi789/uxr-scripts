@@ -20,7 +20,7 @@ compare_histogram <- function(df, bar_x, comparing_on, title_graph, width) {
   return(p)
 }
 
-stacked_bar <- function(df, bar_x, bar_fill, title_graph) {
+stacked_bar <- function(df, bar_x, bar_fill, title_graph, color_scale) {
   # following this tutorial: https://www.statology.org/stacked-barplot-in-r/
   summary_df <- df %>%
     group_by_at(vars(!!bar_x, !!bar_fill)) %>%
@@ -37,6 +37,7 @@ stacked_bar <- function(df, bar_x, bar_fill, title_graph) {
          x = bar_x,
          y = "Count",
          fill = bar_fill) +
+    scale_fill_manual(values = color_scale) +  # Use the provided color scale
     theme_minimal()
   
   return(p)
@@ -49,6 +50,11 @@ get_first_char_as_numeric <- function(x) {x
 
 
 # SET VARIABLES
+color_scale <- c("5" = "darkgreen", 
+                 "4" = "lightgreen", 
+                 "3" = "grey", 
+                 "2" = "yellow", 
+                 "1" = "red")
 agree_color_scale <- c("5 - Strongly agree" = "darkgreen", 
                        "4 - Agree" = "lightgreen", 
                        "3 - Somewhat agree" = "grey", 
@@ -100,15 +106,15 @@ df$avg_accurate_info <- round(rowMeans(df[, c("x1_accurate_info", "x2_accurate_i
 bar_x = "study_version"
 bar_fill = "x1_accurate_info"
 title_graph = paste("across\"", bar_x, "\", the response to: \"", bar_fill, "\"", sep = " ")
-stacked_bar(df, bar_x, bar_fill, title_graph)
+stacked_bar(df, bar_x, bar_fill, title_graph, color_scale)
 
 bar_fill = "x2_accurate_info"
 title_graph = paste("across\"", bar_x, "\", the response to: \"", bar_fill, "\"", sep = " ")
-stacked_bar(df, bar_x, bar_fill, title_graph)
+stacked_bar(df, bar_x, bar_fill, title_graph, color_scale)
 
 bar_fill = "x3_accurate_info"
 title_graph = paste("across\"", bar_x, "\", the response to: \"", bar_fill, "\"", sep = " ")
-stacked_bar(df, bar_x, bar_fill, title_graph)
+stacked_bar(df, bar_x, bar_fill, title_graph, color_scale)
 
 # average the score across WO FURTHER RESEARCH
 # cast to numbers
@@ -124,13 +130,13 @@ df$avg_without_further_research <- round(rowMeans(df[, c("x1_without_further_res
 bar_x = "study_version"
 bar_fill = "x1_without_further_research"
 title_graph = paste("across\"", bar_x, "\", the response to: \"", bar_fill, "\"", sep = " ")
-stacked_bar(df, bar_x, bar_fill, title_graph)
+stacked_bar(df, bar_x, bar_fill, title_graph, color_scale)
 
 bar_fill = "x2_without_further_research"
 title_graph = paste("across\"", bar_x, "\", the response to: \"", bar_fill, "\"", sep = " ")
-stacked_bar(df, bar_x, bar_fill, title_graph)
+stacked_bar(df, bar_x, bar_fill, title_graph, color_scale)
 
 bar_fill = "x3_without_further_research"
 title_graph = paste("across\"", bar_x, "\", the response to: \"", bar_fill, "\"", sep = " ")
-stacked_bar(df, bar_x, bar_fill, title_graph)
+stacked_bar(df, bar_x, bar_fill, title_graph, color_scale)
 
