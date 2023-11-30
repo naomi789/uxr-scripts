@@ -1,6 +1,7 @@
 library(readr)
 library(dplyr)
 library(ggplot2)
+# setwd("~/Documents/uxr-scripts/usertesting")
 
 
 # FUNCTIONS: 
@@ -55,23 +56,12 @@ color_scale <- c("5" = "darkgreen",
                  "3" = "grey", 
                  "2" = "yellow", 
                  "1" = "red")
-agree_color_scale <- c("5 - Strongly agree" = "darkgreen", 
-                       "4 - Agree" = "lightgreen", 
-                       "3 - Somewhat agree" = "grey", 
-                       "2 - Disagree" = "yellow", 
-                       "1 - Strongly disagree" = "red")
-likely_color_scale <- c("5 - Very likely" = "darkgreen", 
-                        "4 - Likely" = "lightgreen", 
-                        "3 - Somewhat likely" = "grey", 
-                        "2 - Not likely" = "yellow", 
-                        "1 - Not at all likely" = "red", 
-)
 
 # GET THE DATA
-t_file <- "usertesting/treatment.csv"
+t_file <- "treatment.csv"
 t_df <- read_csv(t_file) %>% janitor::clean_names()
 
-c_file <- "usertesting/control.csv"
+c_file <- "control.csv"
 c_df <- read_csv(c_file) %>% janitor::clean_names()
 
 # combine them together
@@ -79,6 +69,9 @@ df <- bind_rows(
   mutate(c_df, study_version = control),
   mutate(t_df, study_version = treatment)) %>% 
   select(-control, -na, -treatment)
+
+# shortening column names bc they're too long
+colnames(df) <- substr(colnames(df), 1, 55)
 
 # PARTICIPANTS
 # age
@@ -95,14 +88,19 @@ compare_histogram(df, bar_x, comparing_on, title_graph, 10)
 # cast to numbers
 df <- df %>%
   mutate(
+    "x1_without_further_research" = sapply(df$x1_allergies_make_decisions_without_further_research, get_first_char_as_numeric),
+    "x2_without_further_research" = sapply(df$x2_covid_flu_make_decisions_without_further_research, get_first_char_as_numeric),
+    "x3_without_further_research" = sapply(df$x3_new_job_make_decisions_without_further_research, get_first_char_as_numeric)
+  )
+df <- df %>%
+  mutate(
     "x1_accurate_info" = sapply(df$x1_allergies_the_information_provided_is_accurate, get_first_char_as_numeric),
     "x2_accurate_info" = sapply(df$x2_covid_flu_the_information_provided_is_accurate, get_first_char_as_numeric),
     "x3_accurate_info" = sapply(df$x3_new_job_the_information_provided_is_accurate, get_first_char_as_numeric)
   )
-# average the score across ACCURACY
-df$avg_accurate_info <- round(rowMeans(df[, c("x1_accurate_info", "x2_accurate_info", "x3_accurate_info")], na.rm = TRUE), 2)
-  
-# look at accuracy
+
+# ACCURACY
+# look at responses for each scenario
 bar_x = "study_version"
 bar_fill = "x1_accurate_info"
 title_graph = paste("across\"", bar_x, "\", the response to: \"", bar_fill, "\"", sep = " ")
@@ -116,17 +114,17 @@ bar_fill = "x3_accurate_info"
 title_graph = paste("across\"", bar_x, "\", the response to: \"", bar_fill, "\"", sep = " ")
 stacked_bar(df, bar_x, bar_fill, title_graph, color_scale)
 
-# average the score across WO FURTHER RESEARCH
-# cast to numbers
-df <- df %>%
-  mutate(
-    "x1_without_further_research" = sapply(df$x1_allergies_make_decisions_without_further_research, get_first_char_as_numeric),
-    "x2_without_further_research" = sapply(df$x2_covid_flu_make_decisions_without_further_research, get_first_char_as_numeric),
-    "x3_without_further_research" = sapply(df$x3_new_job_make_decisions_without_further_research, get_first_char_as_numeric)
-  )
-# find the average
-df$avg_without_further_research <- round(rowMeans(df[, c("x1_without_further_research", "x2_without_further_research", "x3_without_further_research")], na.rm = TRUE), 2)
-# look at wo
+# ACCURACY
+# calculate the average score across 3 scenarios
+df$avg_accurate_info <- round(rowMeans(df[, c("x1_accurate_info", "x2_accurate_info", "x3_accurate_info")], na.rm = TRUE), 2)
+# visualize the average
+comparing_on = "study_version"
+bar_x = "avg_accurate_info"
+title_graph = paste("across\"", bar_x, "\", the response to: \"", bar_fill, "\"", sep = " ")
+compare_histogram(df, bar_x, comparing_on, title_graph, 1)
+
+# WITHOUT FURTHER RESEARCH
+# look at responses for each scenario
 bar_x = "study_version"
 bar_fill = "x1_without_further_research"
 title_graph = paste("across\"", bar_x, "\", the response to: \"", bar_fill, "\"", sep = " ")
@@ -139,4 +137,13 @@ stacked_bar(df, bar_x, bar_fill, title_graph, color_scale)
 bar_fill = "x3_without_further_research"
 title_graph = paste("across\"", bar_x, "\", the response to: \"", bar_fill, "\"", sep = " ")
 stacked_bar(df, bar_x, bar_fill, title_graph, color_scale)
+
+# WITHOUT FURTHER RESEARCH
+# calculate the average score across 3 scenarios
+df$avg_without_further_research <- round(rowMeans(df[, c("x1_without_further_research", "x2_without_further_research", "x3_without_further_research")], na.rm = TRUE), 2)
+# visualize the average
+comparing_on = "study_version"
+bar_x = "avg_without_further_research"
+title_graph = paste("across\"", bar_x, "\", the response to: \"", bar_fill, "\"", sep = " ")
+compare_histogram(df, bar_x, comparing_on, title_graph, 1)
 
