@@ -120,7 +120,7 @@ df$avg_accurate_info <- round(rowMeans(df[, c("x1_accurate_info", "x2_accurate_i
 # visualize the average
 comparing_on = "study_version"
 bar_x = "avg_accurate_info"
-title_graph = paste("across\"", bar_x, "\", the response to: \"", bar_fill, "\"", sep = " ")
+avg_title_graph = paste("across\"", comparing_on, "\", the response to: \"", bar_x, "\"", sep = " ")
 compare_histogram(df, bar_x, comparing_on, title_graph, 1)
 
 # WITHOUT FURTHER RESEARCH
@@ -144,5 +144,5 @@ df$avg_without_further_research <- round(rowMeans(df[, c("x1_without_further_res
 # visualize the average
 comparing_on = "study_version"
 bar_x = "avg_without_further_research"
-title_graph = paste("across\"", bar_x, "\", the response to: \"", bar_fill, "\"", sep = " ")
+avg_title_graph = paste("across\"", comparing_on, "\", the response to: \"", bar_x, "\"", sep = " ")
 compare_histogram(df, bar_x, comparing_on, title_graph, 1)
