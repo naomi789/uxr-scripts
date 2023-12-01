@@ -44,6 +44,20 @@ plot_stacked <- function(df, key_col, count_responses, title_graph, preferred_or
   return(p)
 }
 
+one_stacked_graph <- function(df, col) {
+  df_long <- df %>%
+    select(col) %>%
+    gather(key = "Category", value = "Response")
+  p <- ggplot(df_long, aes(x = Category, fill = Response)) +
+    geom_bar(position = "stack") +
+    labs(title = col,
+         x = "Category",
+         y = "Count") +
+    theme_minimal()
+  return(p)
+}
+
+
 # GET DATA FROM SURVEYMONKEY
 excel_path <- "School-Choice-For-CCNY-2023-11-30-4pm.xlsx"
 df <- read_excel(path = excel_path)
@@ -53,25 +67,33 @@ df <- read_excel(path = excel_path)
 df_sub_questions <- slice(df, 1)
 df <- df[-1, , drop = FALSE]
 # let's drop everyone who said "1..." or "2..." for seriousness of search
-column_name="During the past 12 months, how seriously have you considered enrolling your child/children in a different K-12 school in the US?"
+column_name <- "During the past 12 months, how seriously have you considered enrolling your child/children in a different K-12 school in the US?"
+
 df <- df %>%
-  filter(!(column_name == "1 - I did not consider switching schools" | 
-             column_name == "2 - I considered switching, but decided not to switch, so I did not research schools"))
+  filter(!(str_trim(df[[column_name]]) %in% c("1 - I did not consider switching schools", 
+                                              "2 - I considered switching, but decided not to switch, so I did not research schools", 
+                                              "2 - I considered switching, but decided to not switch, so I did not research schools")))
+
 # and drop everyone who said they didn't have K-12 kids
 column_name="Are you a parent or guardian of school-aged (K-12) child/children currently living in the US?"
 df <- df %>%
-  filter(!(column_name == "No"))
+  filter(!(str_trim(df[[column_name]]) %in% c("No", 
+                                              "No ")))
 
 # PARTICIPANTS
-# household income (self-reported); BG aka 59
+# HOUSEHOLD INCOME; BG aka 59
 # re-order the values
+income_df <-df[,59, drop = FALSE]
 custom_order <- c("$0 - 25,000/year", "$25,000 - 50,000/year", "$50,000 - 75,000/year", "$75,000-100,000/year", "$100,000/year or more", "I prefer not to disclose", "NA")
-df$`What is your household’s range of income?` <- factor(df$`What is your household’s range of income?`, levels = custom_order)
+income_df$`What is your household’s range of income?` <- factor(df$`What is your household’s range of income?`, levels = custom_order)
+# remove folks who did not share an answer
+income_df <- income_df[rowSums(is.na(income_df)) != ncol(income_df), ]
+# graph it
 title_graph = "Household Income Distribution"
 x_vals = "What is your household’s range of income?"
-plot_histo(df, title_graph, x_vals)
+plot_histo(income_df, title_graph, x_vals)
 
-# racial identity (self-reported); BH-BO aka 60-67
+# RACIAL IDENTITY; BH-BO aka 60-67
 visualize_split_col <-df[,60:67, drop = FALSE]
 split_col_name <- df_sub_questions[,60:67, drop = FALSE]
 colnames(visualize_split_col) <- split_col_name
@@ -85,16 +107,14 @@ preferred_order = c("American Indian or Alaska Native", "Asian", "Black or Afric
                     "Native Hawaiian and Pacific Islander", "White (e.g. German, Irish, English, American, Italian, Polish)", 
                     "I prefer not to answer", "My identity is not on the list")
 title_graph = "reported their race"
-# df <- visualize_split_col
-# plot_stacked(visualize_split_col, key_col, count_responses, title_graph, preferred_order)
 plot_stacked(visualize_split_col, key_col, count_responses, title_graph, preferred_order)
 # HOW TO: check number of options selected per respodent
 # visualize_split_col$responded <-rowSums(!is.na(visualize_split_col))
 
-# source (SurveyMonkey or UT?)
+# SOURCE; (SurveyMonkey or UT?)
 # TODO: make pie chart
 
-# grades of kid(s) (enrolled in:not enrolled; K-5; 6-8; 9-12); X~AK aka 23-37
+# KIDS' GRADES DURING SEARCH; X~AK aka 23-37
 subset_df <- df[, 24:37, drop = FALSE]
 subset_df$non_na_count <- rowSums(!is.na(subset_df))
 subset_df$elem <- rowSums(!is.na(df[, 24:30])) > 0
@@ -111,7 +131,9 @@ plot_stacked(elem_mid_high_df, key_col, sum_reported_kids_grade, "reported kids'
 # completed v. not completed
 # did not switch v. will switch v. already switch
 # reason to switch
-# seriousness of switching
+# SERIOUSNESS OF SWITCHING
+seriousness_df <- df[,12]
+one_stacked_graph(seriousness_df)
 # planning to move? where? 
 # feeder school
 
@@ -132,9 +154,10 @@ plot_histo(df, title_graph, x_vals)
 # just get relevant columns
 subset_df <- df[, 39:56, drop = FALSE]
 # Rename columns to first row; remove that row
-colnames(subset_df) <- subset_df[1, ]
-subset_df <- subset_df[-1, ]
-subset_df <- subset_df[complete.cases(subset_df), ]
+subset_col_name <- df_sub_questions[, 39:56, drop = FALSE]
+colnames(subset_df) <- subset_col_name
+# drop folks who didn't answer any of these questions
+subset_df <- subset_df[rowSums(is.na(subset_df)) != ncol(subset_df), ]
 # Check if there are any NA values in subset_df & print
 # has_na <- any(is.na(subset_df))
 # print(has_na)
@@ -145,18 +168,9 @@ name_x_axis = "Aspects of K-12 school"
 many_bars_stacked(subset_df, graph_title, name_x_axis, name_y_axis, name_key)
 # making custom graph for each column
 for (col in colnames(subset_df)) {
-  subset_df_long <- subset_df %>%
-    select(col) %>%
-    gather(key = "Category", value = "Response")
-  p <- ggplot(subset_df_long, aes(x = Category, fill = Response)) +
-    geom_bar(position = "stack") +
-    labs(title = col,
-         x = "Category",
-         y = "Count") +
-    theme_minimal()
-  print(p)
+  print(one_stacked_graph(subset_df, col))
 }
-
+# find count of folks who reponded "did not consider" for any given question
 count_df <- data.frame(column_name = character(0), "NA - Did not consider this" = integer(0), "Other Values" = integer(0), stringsAsFactors = FALSE)
 
 # Loop through each column in the original data frame
