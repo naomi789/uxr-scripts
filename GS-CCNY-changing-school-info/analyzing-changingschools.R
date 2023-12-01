@@ -81,9 +81,9 @@ count_df_long$label <- substr(count_df_long$`Aspect of K-12 School`, 1, 65)
 p <- ggplot(count_df_long, aes(x = `Aspect of K-12 School`, y = Count, fill = Response)) +
   geom_bar(stat = "identity") +
   geom_text(aes(label = ifelse(Response == "Did not consider", Count, "")),
-            position = position_stack(vjust = 0.5), color = "black") +  # Add labels of "Count" for "Did not consider"
-  # geom_text(aes(label = ifelse(Response == "Other", Count, "")),
-            # position = position_stack(vjust = 0.5), color = "white") +  # Add labels for "Other"
+            position = position_stack(vjust = 0.5), color = "white") +  # Add labels of "Count" for "Did not consider"
+  geom_text(aes(label = ifelse(Response == "Other", Count, "")),
+            position = position_stack(vjust = 0.95), color = "white") +  # Add labels for "Other"
   geom_text(aes(label = ifelse(Response == "Other", label, "")),
             position = position_stack(vjust = 0.02), color = "black", size = 3, angle = 90, hjust = 0) +
   
@@ -91,8 +91,8 @@ p <- ggplot(count_df_long, aes(x = `Aspect of K-12 School`, y = Count, fill = Re
   labs(title = "Stacked Bar Chart",
        x = "Aspect of K-12 School",
        y = "Count") +
-  theme_minimal()
-
+  theme_minimal() +
+  theme(axis.text.x = element_blank())  # Remove x-axis labels
 print(p)
 
 # shorten titles of columns
