@@ -44,17 +44,30 @@ plot_stacked <- function(df, key_col, count_responses, title_graph, preferred_or
   return(p)
 }
 
-one_stacked_graph <- function(df, col) {
+one_stacked_graph <- function(df, select_on) {
   df_long <- df %>%
-    select(col) %>%
+    select(select_on) %>%
     gather(key = "Category", value = "Response")
   p <- ggplot(df_long, aes(x = Category, fill = Response)) +
     geom_bar(position = "stack") +
-    labs(title = col,
+    labs(title = select_on,
          x = "Category",
          y = "Count") +
     theme_minimal()
   return(p)
+}
+
+view_other_write_ins <- function(df, this_col_name, og_col_name) {
+  # drop NAs
+  short_df <- df[rowSums(is.na(df)) != ncol(df), ]
+  # print all values
+  if (nrow(short_df) > 0) {
+    # Print non-NA values
+    non_na_values <- short_df$this_col_name[!is.na(short_df$this_col_name)]
+    print(non_na_values)
+  } else {
+    print(paste('No non-NA values in the column: "', og_col_name, '"'))
+  }
 }
 
 
@@ -81,6 +94,20 @@ df <- df %>%
                                               "No ")))
 
 # PARTICIPANTS
+# SERIOUSNESS OF SWITCHING
+select_on = "During the past 12 months, how seriously have you considered enrolling your child/children in a different K-12 school in the US?"
+one_stacked_graph(df[,12], select_on)
+
+# REASON TO BEGIN SWITCH
+view_other_write_ins(df[,14], colnames(df)[14], colnames(df)[13])
+reason_to_search <- df[,13, drop = FALSE]
+# remove folks who didn't share an answer
+reason_to_search <- reason_to_search[rowSums(is.na(reason_to_search)) != ncol(reason_to_search), ]
+select_on = "Which best describes why you began researching K-12 schools for your child to attend?"
+title_graph <- select_on
+plot_histo(reason_to_search, title_graph, select_on)
+
+
 # HOUSEHOLD INCOME; BG aka 59
 # re-order the values
 income_df <-df[,59, drop = FALSE]
@@ -131,9 +158,7 @@ plot_stacked(elem_mid_high_df, key_col, sum_reported_kids_grade, "reported kids'
 # completed v. not completed
 # did not switch v. will switch v. already switch
 # reason to switch
-# SERIOUSNESS OF SWITCHING
-seriousness_df <- df[,12]
-one_stacked_graph(seriousness_df)
+
 # planning to move? where? 
 # feeder school
 
