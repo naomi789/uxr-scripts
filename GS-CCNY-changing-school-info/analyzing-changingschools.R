@@ -140,7 +140,7 @@ type_df <- type_df[rowSums(is.na(type_df)) != ncol(type_df), ]
 type_df <- type_df[,2:6]
 name_x_axis = "What kind of K-12 school were you considering? Select all that apply."
 title_graph = "Did/did not consider schools of these types"
-many_bars_stacked(type_df, title_graph, name_x_axis, name_y_axis, "yes or no")
+many_bars_stacked(type_df, title_graph, name_x_axis, "Count", "yes or no")
 
 # KIDS' GRADES DURING SEARCH; X~AK aka 23-37
 subset_df <- df[, 24:37, drop = FALSE]
