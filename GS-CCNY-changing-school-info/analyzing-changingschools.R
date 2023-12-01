@@ -3,6 +3,8 @@ library(janitor)
 library(tidyr)
 library(ggplot2)
 library(stringr)
+library(viridis)
+
 
 # FUNCTIONS
 many_bars_stacked <- function(subset_df, title_graph, name_x_axis, name_y_axis, name_key) {
@@ -30,6 +32,7 @@ plot_histo <- function(df, title_graph, x_vals) {
     theme_minimal() + 
     theme(axis.text.x = element_text(angle = 20, hjust = 1))
 }
+
 
 plot_stacked <- function(df, key_col, count_responses, title_graph, preferred_order) {
   df <- tidyr::gather(df, key = key_col, value = "Value")
@@ -59,6 +62,38 @@ one_stacked_graph <- function(df, select_on) {
   return(p)
 }
 
+show_missing_stacked_graph <- function(df, select_on, alphabetized_values) {
+  summary_table <- table(df$`The most important factor of my school search was`)
+  summary_df <- as.data.frame(table(factor(df$`The most important factor of my school search was`, levels = alphabetized_values)))
+  # print(summary_df)
+  # print(length(alphabetized_values))
+  # nice_colors <- viridis_pal()(20)
+  p <- ggplot(summary_df, aes(x = "", y = Freq, fill = factor(str_sub(Var1, end = 20)))) +
+    geom_bar(stat = "identity") +
+    labs(title = "Factor Counts",
+         x = "",
+         # fill= "",
+         y = "Count") +
+    # scale_fill_manual(values = nice_colors) +
+    theme_minimal() +
+    theme(legend.position="top")  
+
+  return(p)
+}
+
+show_missing_stacked_graph <- function(df, select_on, alphabetized_values) {
+  df_long <- df %>%
+    select(select_on) %>%
+    gather(key = "Category", value = "Response")
+  p <- ggplot(df_long, aes(x = Category, fill = Response)) +
+    geom_bar(position = "stack") +
+    labs(title = select_on,
+         x = "Category",
+         y = "Count") +
+    theme_minimal()
+  return(p)
+}
+
 view_other_write_ins <- function(df, this_col_name, og_col_name) {
   # drop NAs
   short_df <- df[rowSums(is.na(df)) != ncol(df), ]
@@ -75,25 +110,27 @@ view_other_write_ins <- function(df, this_col_name, og_col_name) {
 
 # GET DATA FROM SURVEYMONKEY
 excel_path <- "School-Choice-For-CCNY-2023-11-30-4pm.xlsx"
-df <- read_excel(path = excel_path)
+clean_df <- read_excel(path = excel_path)
 
 # CLEANING DATA
 # storing the sub-questions (and then intentionally removing them)
-df_sub_questions <- slice(df, 1)
-df <- df[-1, , drop = FALSE]
+df_sub_questions <- slice(clean_df, 1)
+clean_df <- clean_df[-1, , drop = FALSE]
 # let's drop everyone who said "1..." or "2..." for seriousness of search
 column_name <- "During the past 12 months, how seriously have you considered enrolling your child/children in a different K-12 school in the US?"
 
-df <- df %>%
-  filter(!(str_trim(df[[column_name]]) %in% c("1 - I did not consider switching schools", 
+clean_df <- clean_df %>%
+  filter(!(str_trim(clean_df[[column_name]]) %in% c("1 - I did not consider switching schools", 
                                               "2 - I considered switching, but decided not to switch, so I did not research schools", 
                                               "2 - I considered switching, but decided to not switch, so I did not research schools")))
 
 # drop everyone who said they didn't have K-12 kids
 column_name="Are you a parent or guardian of school-aged (K-12) child/children currently living in the US?"
-df <- df %>%
-  filter(!(str_trim(df[[column_name]]) %in% c("No", 
+clean_df <- clean_df %>%
+  filter(!(str_trim(clean_df[[column_name]]) %in% c("No", 
                                               "No ")))
+# TO RE-START
+df <- clean_df
 
 # PARTICIPANTS
 # SERIOUSNESS OF SWITCHING
@@ -170,11 +207,8 @@ title_graph = "Most important factor of my school search was:"
 plot_histo(important_search_factor, title_graph, select_on)
 # TO DO WORKING HERE NOW
 alphabetized_values <- sort(unlist(df_sub_questions[, 39:56, drop = FALSE][1,]))
-print(length(alphabetized_values))
-print(unique(alphabetized_values))
-print(length(important_search_factor$`The most important factor of my school search was`))
-print(unique(important_search_factor$`The most important factor of my school search was`))
-plot_stacked(important_search_factor, select_on, count_response, "response on school factors", alphabetized_values)
+show_missing_stacked_graph(important_search_factor, select_on, alphabetized_values)
+
 
 # MOST IMPORTANT TO SUCCEED AT; BE aka 56
 x_vals = "I believe the most important thing for my child/children to succeed at is:"
