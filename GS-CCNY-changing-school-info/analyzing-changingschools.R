@@ -27,6 +27,13 @@ excel_path <- "School-Choice-For-CCNY-2023-11-30-4pm.xlsx"
 # grabbing info from file
 df <- read_excel(path = excel_path)
 
+# PARTICIPANTS
+# household income (self-reported); BG aka 59
+# racial identity (self-reported); BH-BO aka 60-67
+# source (SurveyMonkey or UT?)
+# important_to_succeed_at; BE aka 56
+# skill_or_mindset_to_develop; BF aka 57
+
 # VISUALIZATION
 # one giant set of stacked bar graphs for AM-BD (18 columns)
 # just get relevant columns
