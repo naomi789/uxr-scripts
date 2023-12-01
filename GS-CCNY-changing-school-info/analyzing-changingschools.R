@@ -21,18 +21,62 @@ many_bars_stacked <- function(subset_df, graph_title, name_x_axis, name_y_axis, 
   return(p)
 }
 
+plot_histo <- function(df, title_graph, x_vals) {
+  ggplot(df, aes(x = !!rlang::sym(x_vals))) +
+    geom_bar() +
+    labs(title = title_graph,
+         x = x_vals,
+         y = "Count") +
+    theme_minimal() + 
+    theme(axis.text.x = element_text(angle = 20, hjust = 1))
+}
+
 # GET DATA FROM SURVEYMONKEY
 excel_path <- "School-Choice-For-CCNY-2023-11-30-4pm.xlsx"
-
-# grabbing info from file
 df <- read_excel(path = excel_path)
+
+# CLEANING DATA
+# if I need to see the sub-questions, they're missing bc I intentially removed them
+df <- df[-1, , drop = FALSE]
+# let's drop everyone who said "1..." or "2..." for seriousness of search
+column_name="During the past 12 months, how seriously have you considered enrolling your child/children in a different K-12 school in the US?"
+df <- df %>%
+  filter(!(column_name == "1 - I did not consider switching schools" | 
+             column_name == "2 - I considered switching, but decided not to switch, so I did not research schools"))
+# and drop everyone who said they didn't have K-12 kids
+column_name="Are you a parent or guardian of school-aged (K-12) child/children currently living in the US?"
+df <- df %>%
+  filter(!(column_name == "No"))
 
 # PARTICIPANTS
 # household income (self-reported); BG aka 59
+# re-order the values
+custom_order <- c("$0 - 25,000/year", "$25,000 - 50,000/year", "$50,000 - 75,000/year", "$75,000-100,000/year", "$100,000/year or more", "I prefer not to disclose", "NA")
+df$`What is your household’s range of income?` <- factor(df$`What is your household’s range of income?`, levels = custom_order)
+title_graph = "Household Income Distribution"
+x_vals = "What is your household’s range of income?"
+plot_histo(df, title_graph, x_vals)
+
 # racial identity (self-reported); BH-BO aka 60-67
 # source (SurveyMonkey or UT?)
 # important_to_succeed_at; BE aka 56
+x_vals = "I believe the most important thing for my child/children to succeed at is:"
+title_graph <- x_vals
+plot_histo(df, title_graph, x_vals)
+
 # skill_or_mindset_to_develop; BF aka 57
+x_vals = "I believe the most skill or mindset for my child/children to develop is:"
+title_graph <- x_vals
+plot_histo(df, title_graph, x_vals)
+
+# grades of kid(s) (enrolled in:not enrolled; K-5; 6-8; 9-12)
+# searching of what types of schools? 
+# completed v. not completed
+# did not switch v. will switch v. already switch
+# reason to switch
+# seriousness of switching
+# planning to move? where? 
+# feeder school
 
 # VISUALIZATION
 # one giant set of stacked bar graphs for AM-BD (18 columns)
