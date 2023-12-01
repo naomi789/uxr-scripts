@@ -5,14 +5,14 @@ library(ggplot2)
 library(stringr)
 
 # FUNCTIONS
-many_bars_stacked <- function(subset_df, graph_title, name_x_axis, name_y_axis, name_key) {
+many_bars_stacked <- function(subset_df, title_graph, name_x_axis, name_y_axis, name_key) {
   subset_df_long <- subset_df %>%
     gather(key = "Category", value = "Response")
   
   # Plotting stacked bar chart
   p <- ggplot(subset_df_long, aes(x = Category, fill = Response)) +
     geom_bar(position = "stack") +
-    labs(title = graph_title,
+    labs(title = title_graph,
          x = name_x_axis,
          y = name_y_axis, 
          fill = name_key) +
@@ -39,7 +39,6 @@ plot_stacked <- function(df, key_col, count_responses, title_graph, preferred_or
     labs(title = paste("Some parents (n =", count_responses, ") ", title_graph),
          x = key_col,
          y = "Count") +
-    # scale_fill_manual(values = c("TRUE" = "lightgreen", "FALSE" = "grey")) +  # Customize colors
     theme_minimal()
   return(p)
 }
@@ -87,7 +86,7 @@ df <- df %>%
                                               "2 - I considered switching, but decided not to switch, so I did not research schools", 
                                               "2 - I considered switching, but decided to not switch, so I did not research schools")))
 
-# and drop everyone who said they didn't have K-12 kids
+# drop everyone who said they didn't have K-12 kids
 column_name="Are you a parent or guardian of school-aged (K-12) child/children currently living in the US?"
 df <- df %>%
   filter(!(str_trim(df[[column_name]]) %in% c("No", 
@@ -107,10 +106,79 @@ select_on = "Which best describes why you began researching K-12 schools for you
 title_graph <- select_on
 plot_histo(reason_to_search, title_graph, select_on)
 
+# PLANNING TO MOVE? 
+# "During your K-12 school search, were you planning on moving?"
+moving_df <- df[,15]
+# remove folks who reported moving was not why they started to
+moving_df <- moving_df[rowSums(is.na(moving_df)) != ncol(moving_df), ]
+select_on = "During your K-12 school search, were you planning on moving?"
+title_graph = "If moving was why began researching, they are moving..."
+plot_histo(moving_df, title_graph, select_on)
+
+# CHILD GRADUATING & MOVING TO ES, MS, HS
+# In many school districts, most graduates of one school all go to an assigned "feeder" school together (eg, elementary students are "fed" into the same middle school, middle school students are "fed" into the same high school) unless parents choose otherwise. Will your child be attending their assigned feeder school?
+grad_df <- df[,16]
+grad_df <- grad_df[rowSums(is.na(grad_df)) != ncol(grad_df), ]
+select_on = 'In many school districts, most graduates of one school all go to an assigned "feeder" school together (eg, elementary students are "fed" into the same middle school, middle school students are "fed" into the same high school) unless parents choose otherwise. Will your child be attending their assigned feeder school?'
+title_graph = "If graduating was why began researching, their kid is..."
+plot_histo(grad_df, title_graph, select_on)
+
+# CURRENT PHASE IN SCHOOL CHOICE JOURNEY
+# "Where are you at with your K-12 school search?"
+current_phase_df <- df[,17]
+current_phase_df <- current_phase_df[rowSums(is.na(current_phase_df)) != ncol(current_phase_df), ]
+select_on = "Where are you at with your K-12 school search?"
+title_graph = "Current phase in school search journey"
+plot_histo(current_phase_df, title_graph, select_on)
+
+# SCHOOL TYPE
+# What kind of K-12 school were you considering? Select all that apply.
+type_df <- df[,18:23]
+colnames(type_df) <- df_sub_questions[,18:23, drop = FALSE]
+type_df <- type_df[rowSums(is.na(type_df)) != ncol(type_df), ]
+# remove the "none of the above" column
+type_df <- type_df[,2:6]
+name_x_axis = "What kind of K-12 school were you considering? Select all that apply."
+title_graph = "Did/did not consider schools of these types"
+many_bars_stacked(type_df, title_graph, name_x_axis, name_y_axis, "yes or no")
+
+# KIDS' GRADES DURING SEARCH; X~AK aka 23-37
+subset_df <- df[, 24:37, drop = FALSE]
+subset_df$non_na_count <- rowSums(!is.na(subset_df))
+subset_df$elem <- rowSums(!is.na(df[, 24:30])) > 0
+subset_df$mid <- rowSums(!is.na(df[, 31:33])) > 0
+subset_df$high <- rowSums(!is.na(df[, 34:37])) > 0
+sum_reported_kids_grade <- sum(rowSums(subset_df[, c("elem", "mid", "high")]) > 0)
+elem_mid_high_df <- subset_df %>% select("elem", "mid", "high")
+preferred_order <- c("elem", "mid", "high")
+key_col <- "Grade_Level"
+plot_stacked(elem_mid_high_df, key_col, sum_reported_kids_grade, "reported kids' grade during search", preferred_order)
+
+# MOST IMPORTANT FACTOR OF MY SEARCH; AL aka
+# "The most important factor of my school search was"
+important_search_factor <- df[,38]
+important_search_factor <- important_search_factor[rowSums(is.na(important_search_factor)) != ncol(important_search_factor), ]
+select_on = "The most important factor of my school search was"
+title_graph = "Most important factor of my school search was:"
+plot_histo(important_search_factor, title_graph, select_on)
+# TO DO WORKING HERE NOW
+alphabetized_values <- sort(unlist(df_sub_questions[, 39:56, drop = FALSE][1,]))
+plot_stacked(important_search_factor, select_on, count_response, "response on school factors", alphabetized_values)
+
+# MOST IMPORTANT TO SUCCEED AT; BE aka 56
+x_vals = "I believe the most important thing for my child/children to succeed at is:"
+title_graph <- x_vals
+plot_histo(df, title_graph, x_vals)
+
+# MOST IMPORTANT SKILL OR MINDSET; BF aka 57
+x_vals = "I believe the most skill or mindset for my child/children to develop is:"
+title_graph <- x_vals
+plot_histo(df, title_graph, x_vals)
+
 
 # HOUSEHOLD INCOME; BG aka 59
 # re-order the values
-income_df <-df[,59, drop = FALSE]
+income_df <-df [,59, drop = FALSE]
 custom_order <- c("$0 - 25,000/year", "$25,000 - 50,000/year", "$50,000 - 75,000/year", "$75,000-100,000/year", "$100,000/year or more", "I prefer not to disclose", "NA")
 income_df$`What is your household’s range of income?` <- factor(df$`What is your household’s range of income?`, levels = custom_order)
 # remove folks who did not share an answer
@@ -120,10 +188,13 @@ title_graph = "Household Income Distribution"
 x_vals = "What is your household’s range of income?"
 plot_histo(income_df, title_graph, x_vals)
 
+
+# skill_or_mindset_to_develop
+
 # RACIAL IDENTITY; BH-BO aka 60-67
 visualize_split_col <-df[,60:67, drop = FALSE]
-split_col_name <- df_sub_questions[,60:67, drop = FALSE]
-colnames(visualize_split_col) <- split_col_name
+colnames(visualize_split_col) <- df_sub_questions[,60:67, drop = FALSE]
+
 # drop folks who did not select a racial identity
 visualize_split_col <- visualize_split_col[rowSums(is.na(visualize_split_col)) != ncol(visualize_split_col), ]
 
@@ -141,37 +212,6 @@ plot_stacked(visualize_split_col, key_col, count_responses, title_graph, preferr
 # SOURCE; (SurveyMonkey or UT?)
 # TODO: make pie chart
 
-# KIDS' GRADES DURING SEARCH; X~AK aka 23-37
-subset_df <- df[, 24:37, drop = FALSE]
-subset_df$non_na_count <- rowSums(!is.na(subset_df))
-subset_df$elem <- rowSums(!is.na(df[, 24:30])) > 0
-subset_df$mid <- rowSums(!is.na(df[, 31:33])) > 0
-subset_df$high <- rowSums(!is.na(df[, 34:37])) > 0
-sum_reported_kids_grade <- sum(rowSums(subset_df[, c("elem", "mid", "high")]) > 0)
-elem_mid_high_df <- subset_df %>% select("elem", "mid", "high")
-preferred_order <- c("elem", "mid", "high")
-key_col <- "Grade_Level"
-plot_stacked(elem_mid_high_df, key_col, sum_reported_kids_grade, "reported kids' grade during search", preferred_order)
-
-
-# searching of what types of schools? 
-# completed v. not completed
-# did not switch v. will switch v. already switch
-# reason to switch
-
-# planning to move? where? 
-# feeder school
-
-
-# important_to_succeed_at; BE aka 56
-x_vals = "I believe the most important thing for my child/children to succeed at is:"
-title_graph <- x_vals
-plot_histo(df, title_graph, x_vals)
-
-# skill_or_mindset_to_develop; BF aka 57
-x_vals = "I believe the most skill or mindset for my child/children to develop is:"
-title_graph <- x_vals
-plot_histo(df, title_graph, x_vals)
 
 
 # VISUALIZATION
@@ -179,18 +219,17 @@ plot_histo(df, title_graph, x_vals)
 # just get relevant columns
 subset_df <- df[, 39:56, drop = FALSE]
 # Rename columns to first row; remove that row
-subset_col_name <- df_sub_questions[, 39:56, drop = FALSE]
-colnames(subset_df) <- subset_col_name
+colnames(subset_df) <- df_sub_questions[, 39:56, drop = FALSE]
 # drop folks who didn't answer any of these questions
 subset_df <- subset_df[rowSums(is.na(subset_df)) != ncol(subset_df), ]
 # Check if there are any NA values in subset_df & print
 # has_na <- any(is.na(subset_df))
 # print(has_na)
-graph_title = "Ease/difficulty finding info on aspects of K-12 school"
+title_graph = "Ease/difficulty finding info on aspects of K-12 school"
 name_y_axis = "Count"
 name_key = "Difficulty finding info"
 name_x_axis = "Aspects of K-12 school"
-many_bars_stacked(subset_df, graph_title, name_x_axis, name_y_axis, name_key)
+many_bars_stacked(subset_df, title_graph, name_x_axis, name_y_axis, name_key)
 # making custom graph for each column
 for (col in colnames(subset_df)) {
   print(one_stacked_graph(subset_df, col))
