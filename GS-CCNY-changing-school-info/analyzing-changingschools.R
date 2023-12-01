@@ -76,6 +76,7 @@ colnames(count_df) <- c("Aspect of K-12 School", "Did not consider", "Other")
 count_df_long <- tidyr::gather(count_df, key = "Response", value = "Count", -"Aspect of K-12 School")
 count_df_long$Count <- as.numeric(count_df_long$Count)
 count_df_long$`Aspect of K-12 School` <- factor(count_df_long$`Aspect of K-12 School`, levels = unique(count_df_long$`Aspect of K-12 School`))
+count_df_long$label <- substr(count_df_long$`Aspect of K-12 School`, 1, 65)
 
 p <- ggplot(count_df_long, aes(x = `Aspect of K-12 School`, y = Count, fill = Response)) +
   geom_bar(stat = "identity") +
@@ -83,9 +84,10 @@ p <- ggplot(count_df_long, aes(x = `Aspect of K-12 School`, y = Count, fill = Re
             position = position_stack(vjust = 0.5), color = "black") +  # Add labels of "Count" for "Did not consider"
   # geom_text(aes(label = ifelse(Response == "Other", Count, "")),
             # position = position_stack(vjust = 0.5), color = "white") +  # Add labels for "Other"
-  geom_text(data = subset(count_df_long, Response == "Other"), 
-            aes(label = str_wrap(`Aspect of K-12 School`, width = 50)),
-            position = position_stack(vjust = 0.8), color = "black", size = 3, hjust = 1, angle = 90)
+  geom_text(aes(label = ifelse(Response == "Other", label, "")),
+            position = position_stack(vjust = 0.02), color = "black", size = 3, angle = 90, hjust = 0) +
+  
+  
   labs(title = "Stacked Bar Chart",
        x = "Aspect of K-12 School",
        y = "Count") +
