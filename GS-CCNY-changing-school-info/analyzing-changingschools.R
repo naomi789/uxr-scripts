@@ -34,12 +34,15 @@ plot_histo <- function(df, title_graph, x_vals) {
 plot_stacked <- function(df, key_col, count_responses, title_graph, preferred_order) {
   df <- tidyr::gather(df, key = key_col, value = "Value")
   df$key_col <- factor(df$key_col, levels = preferred_order)
+  
   p <- ggplot(df, aes(x = key_col, fill = factor(Value))) +
     geom_bar(stat = "count") +
     labs(title = paste("Some parents (n =", count_responses, ") ", title_graph),
          x = key_col,
          y = "Count") +
+    scale_fill_brewer(palette = "Set3") +
     theme_minimal()
+  
   return(p)
 }
 
@@ -144,15 +147,18 @@ title_graph = "Did/did not consider schools of these types"
 many_bars_stacked(type_df, title_graph, name_x_axis, name_y_axis, "yes or no")
 
 # KIDS' GRADES DURING SEARCH; X~AK aka 23-37
-subset_df <- df[, 24:37, drop = FALSE]
-subset_df$non_na_count <- rowSums(!is.na(subset_df))
-subset_df$elem <- rowSums(!is.na(df[, 24:30])) > 0
-subset_df$mid <- rowSums(!is.na(df[, 31:33])) > 0
-subset_df$high <- rowSums(!is.na(df[, 34:37])) > 0
-sum_reported_kids_grade <- sum(rowSums(subset_df[, c("elem", "mid", "high")]) > 0)
-elem_mid_high_df <- subset_df %>% select("elem", "mid", "high")
+grade_level_df <- df[, 24:37, drop = FALSE]
+grade_level_df$non_na_count <- rowSums(!is.na(grade_level_df))
+grade_level_df$elem <- rowSums(!is.na(df[, 24:30])) > 0
+grade_level_df$mid <- rowSums(!is.na(df[, 31:33])) > 0
+grade_level_df$high <- rowSums(!is.na(df[, 34:37])) > 0
+sum_reported_kids_grade <- sum(rowSums(grade_level_df[, c("elem", "mid", "high")]) > 0)
+elem_mid_high_df <- grade_level_df %>% select("elem", "mid", "high")
 preferred_order <- c("elem", "mid", "high")
 key_col <- "Grade_Level"
+# df <- elem_mid_high_df
+# count_responses <- sum_reported_kids_grade
+# title_graph <- "reported kids' grade during search"
 plot_stacked(elem_mid_high_df, key_col, sum_reported_kids_grade, "reported kids' grade during search", preferred_order)
 
 # MOST IMPORTANT FACTOR OF MY SEARCH; AL aka
@@ -164,6 +170,10 @@ title_graph = "Most important factor of my school search was:"
 plot_histo(important_search_factor, title_graph, select_on)
 # TO DO WORKING HERE NOW
 alphabetized_values <- sort(unlist(df_sub_questions[, 39:56, drop = FALSE][1,]))
+print(length(alphabetized_values))
+print(unique(alphabetized_values))
+print(length(important_search_factor$`The most important factor of my school search was`))
+print(unique(important_search_factor$`The most important factor of my school search was`))
 plot_stacked(important_search_factor, select_on, count_response, "response on school factors", alphabetized_values)
 
 # MOST IMPORTANT TO SUCCEED AT; BE aka 56
