@@ -2,6 +2,7 @@ library(readxl)
 library(janitor)
 library(tidyr)
 library(ggplot2)
+library(stringr)
 
 # FUNCTIONS
 many_bars_stacked <- function(subset_df, graph_title, name_x_axis, name_y_axis, name_key) {
@@ -78,6 +79,13 @@ count_df_long$`Aspect of K-12 School` <- factor(count_df_long$`Aspect of K-12 Sc
 
 p <- ggplot(count_df_long, aes(x = `Aspect of K-12 School`, y = Count, fill = Response)) +
   geom_bar(stat = "identity") +
+  geom_text(aes(label = ifelse(Response == "Did not consider", Count, "")),
+            position = position_stack(vjust = 0.5), color = "black") +  # Add labels of "Count" for "Did not consider"
+  # geom_text(aes(label = ifelse(Response == "Other", Count, "")),
+            # position = position_stack(vjust = 0.5), color = "white") +  # Add labels for "Other"
+  geom_text(data = subset(count_df_long, Response == "Other"), 
+            aes(label = str_wrap(`Aspect of K-12 School`, width = 50)),
+            position = position_stack(vjust = 0.8), color = "black", size = 3, hjust = 1, angle = 90)
   labs(title = "Stacked Bar Chart",
        x = "Aspect of K-12 School",
        y = "Count") +
