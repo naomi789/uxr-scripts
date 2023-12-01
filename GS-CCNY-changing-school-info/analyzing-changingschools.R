@@ -31,12 +31,26 @@ plot_histo <- function(df, title_graph, x_vals) {
     theme(axis.text.x = element_text(angle = 20, hjust = 1))
 }
 
+plot_stacked <- function(df, key_col, count_responses, title_graph, preferred_order) {
+  df <- tidyr::gather(df, key = key_col, value = "Value")
+  df$key_col <- factor(df$key_col, levels = preferred_order)
+  p <- ggplot(df, aes(x = key_col, fill = factor(Value))) +
+    geom_bar(stat = "count") +
+    labs(title = paste("Some parents (n =", count_responses, ") ", title_graph),
+         x = key_col,
+         y = "Count") +
+    # scale_fill_manual(values = c("TRUE" = "lightgreen", "FALSE" = "grey")) +  # Customize colors
+    theme_minimal()
+  return(p)
+}
+
 # GET DATA FROM SURVEYMONKEY
 excel_path <- "School-Choice-For-CCNY-2023-11-30-4pm.xlsx"
 df <- read_excel(path = excel_path)
 
 # CLEANING DATA
-# if I need to see the sub-questions, they're missing bc I intentially removed them
+# storing the sub-questions (and then intentionally removing them)
+df_sub_questions <- slice(df, 1)
 df <- df[-1, , drop = FALSE]
 # let's drop everyone who said "1..." or "2..." for seriousness of search
 column_name="During the past 12 months, how seriously have you considered enrolling your child/children in a different K-12 school in the US?"
@@ -58,7 +72,50 @@ x_vals = "What is your household’s range of income?"
 plot_histo(df, title_graph, x_vals)
 
 # racial identity (self-reported); BH-BO aka 60-67
+visualize_split_col <-df[,60:67, drop = FALSE]
+split_col_name <- df_sub_questions[,60:67, drop = FALSE]
+colnames(visualize_split_col) <- split_col_name
+# drop folks who did not select a racial identity
+visualize_split_col <- visualize_split_col[rowSums(is.na(visualize_split_col)) != ncol(visualize_split_col), ]
+
+# then set variables and graph bar (white v. not-white; Black v. not-Black, etc)
+key_col = "racial_identity"
+preferred_order = c("American Indian or Alaska Native", "Asian", "Black or African American", 
+                    "Middle Eastern or North African (e.g. Arab, Kurd, Persian. Turkish)", 
+                    "Native Hawaiian and Pacific Islander", "White (e.g. German, Irish, English, American, Italian, Polish)", 
+                    "I prefer not to answer", "My identity is not on the list")
+title_graph = "reported their race"
+# df <- visualize_split_col
+# plot_stacked(visualize_split_col, key_col, count_responses, title_graph, preferred_order)
+plot_stacked(visualize_split_col, key_col, count_responses, title_graph, preferred_order)
+# HOW TO: check number of options selected per respodent
+# visualize_split_col$responded <-rowSums(!is.na(visualize_split_col))
+
 # source (SurveyMonkey or UT?)
+# TODO: make pie chart
+
+# grades of kid(s) (enrolled in:not enrolled; K-5; 6-8; 9-12); X~AK aka 23-37
+subset_df <- df[, 24:37, drop = FALSE]
+subset_df$non_na_count <- rowSums(!is.na(subset_df))
+subset_df$elem <- rowSums(!is.na(df[, 24:30])) > 0
+subset_df$mid <- rowSums(!is.na(df[, 31:33])) > 0
+subset_df$high <- rowSums(!is.na(df[, 34:37])) > 0
+sum_reported_kids_grade <- sum(rowSums(subset_df[, c("elem", "mid", "high")]) > 0)
+elem_mid_high_df <- subset_df %>% select("elem", "mid", "high")
+preferred_order <- c("elem", "mid", "high")
+key_col <- "Grade_Level"
+plot_stacked(elem_mid_high_df, key_col, sum_reported_kids_grade, "reported kids' grade during search", preferred_order)
+
+
+# searching of what types of schools? 
+# completed v. not completed
+# did not switch v. will switch v. already switch
+# reason to switch
+# seriousness of switching
+# planning to move? where? 
+# feeder school
+
+
 # important_to_succeed_at; BE aka 56
 x_vals = "I believe the most important thing for my child/children to succeed at is:"
 title_graph <- x_vals
@@ -69,14 +126,6 @@ x_vals = "I believe the most skill or mindset for my child/children to develop i
 title_graph <- x_vals
 plot_histo(df, title_graph, x_vals)
 
-# grades of kid(s) (enrolled in:not enrolled; K-5; 6-8; 9-12)
-# searching of what types of schools? 
-# completed v. not completed
-# did not switch v. will switch v. already switch
-# reason to switch
-# seriousness of switching
-# planning to move? where? 
-# feeder school
 
 # VISUALIZATION
 # one giant set of stacked bar graphs for AM-BD (18 columns)
