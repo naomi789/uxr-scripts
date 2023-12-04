@@ -40,6 +40,7 @@ one_stacked_bar <- function(df, select_on) {
     geom_text(
       # aes(label = Value)),
       aes(label = paste("n =", after_stat(count))),
+      # aes(label = after_stat(count)),
       stat = "count",
       position = position_stack(vjust = 0.5), # adjust the vertical position of labels
       size = 3 # adjust the size of labels
@@ -50,7 +51,7 @@ one_stacked_bar <- function(df, select_on) {
     theme_minimal()
   return(p)
 }
-
+# 09_The most important factor of my school search was.png
 show_missing_stacked_graph <- function(df, select_on, alphabetized_values) {
   summary_table <- table(df[[select_on]])
   summary_df <- as.data.frame(table(factor(df[[select_on]], levels = alphabetized_values)))
@@ -58,6 +59,14 @@ show_missing_stacked_graph <- function(df, select_on, alphabetized_values) {
   # nice_colors <- viridis_pal()(20)
   p <- ggplot(summary_df, aes(x = "", y = Freq, fill = factor(str_sub(Var1, end = 20)))) +
     geom_bar(stat = "identity") +
+    geom_text(
+      aes(label = Var1),
+      # aes(label = paste("n =", Freq)),
+      # aes(label = Freq),
+      stat = "identity",  # Use stat = "identity" when supplying labels directly
+      position = position_stack(vjust = 0.5), # adjust the vertical position of labels
+      size = 3 # adjust the size of labels
+    ) +
     labs(title = "Factor Counts",
          x = "",
          # fill= "",
@@ -116,6 +125,15 @@ considered_v_did_not_consider <- function(subset_df) {
 plot_histo <- function(df, title_graph, x_vals) {
   p <- ggplot(df, aes(x = !!rlang::sym(x_vals))) +
     geom_bar() +
+    geom_text(
+      # aes(label = after_stat(count)),
+      # aes(label = Value)),
+      aes(label = paste("n =", after_stat(count))),
+      stat = "count",
+      color = "white",
+      position = position_stack(vjust = 0.5), # adjust the vertical position of labels
+      size = 3 # adjust the size of labels
+    ) +
     labs(title = title_graph,
          x = x_vals,
          y = "Count") +
@@ -170,7 +188,8 @@ print(unique(clean_df[column_name]))
 
 # drop folks who weren't serious about switching
 column_name <- "During the past 12 months, how seriously have you considered enrolling your child/children in a different K-12 school in the US?"
-
+# select_on = "During the past 12 months, how seriously have you considered enrolling your child/children in a different K-12 school in the US?"
+# one_stacked_bar(clean_df, select_on)
 clean_df <- clean_df %>%
   filter(!(str_trim(clean_df[[column_name]]) %in% c("1 - I did not consider switching schools", 
                                                     "2 - I considered switching, but decided not to switch, so I did not research schools", 
@@ -180,7 +199,7 @@ clean_df <- clean_df %>%
 # or didn't answer (serious about switching)
 clean_df <- clean_df[!is.na(clean_df[[column_name]]), ]
 # check
-print(unique(clean_df[column_name]))
+# print(unique(clean_df[column_name]))
 
 
 # SET DF TO CLEAN DATA
@@ -199,14 +218,16 @@ plot_histo(df, title_graph, select_on)
 
 # PLANNING TO MOVE? 
 select_on = "During your K-12 school search, were you planning on moving?"
+moving_df <- df[,15]
 moving_df <- moving_df[rowSums(is.na(moving_df)) != ncol(moving_df), ]
 title_graph = "If moving was reason for search: they are moving..."
 plot_histo(moving_df, title_graph, select_on)
 
 # CHILD GRADUATING/READY TO START ES, MS, HS
+grad_df <- df[,16]
 select_on = 'In many school districts, most graduates of one school all go to an assigned "feeder" school together (eg, elementary students are "fed" into the same middle school, middle school students are "fed" into the same high school) unless parents choose otherwise. Will your child be attending their assigned feeder school?'
 grad_df <- grad_df[rowSums(is.na(grad_df)) != ncol(grad_df), ]
-title_graph = "If graduating was why began researching, their kid is..."
+title_graph = "If graduating was reason for search:their kid is..."
 plot_histo(grad_df, title_graph, select_on)
 
 # CURRENT PHASE IN SCHOOL CHOICE JOURNEY
