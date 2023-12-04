@@ -4,6 +4,7 @@ library(tidyr)
 library(ggplot2)
 library(stringr)
 library(viridis)
+library(dplyr)
 
 
 # FUNCTIONS
@@ -24,13 +25,14 @@ many_bars_stacked <- function(subset_df, title_graph, name_x_axis, name_y_axis, 
 }
 
 plot_histo <- function(df, title_graph, x_vals) {
-  ggplot(df, aes(x = !!rlang::sym(x_vals))) +
+  p <- ggplot(df, aes(x = !!rlang::sym(x_vals))) +
     geom_bar() +
     labs(title = title_graph,
          x = x_vals,
          y = "Count") +
     theme_minimal() + 
     theme(axis.text.x = element_text(angle = 20, hjust = 1))
+  return(p)
 }
 
 
@@ -49,7 +51,7 @@ plot_stacked <- function(df, key_col, count_responses, title_graph, preferred_or
   return(p)
 }
 
-one_stacked_graph <- function(df, select_on) {
+one_stacked_bar <- function(df, select_on) {
   df_long <- df %>%
     select(select_on) %>%
     gather(key = "Category", value = "Response")
@@ -81,19 +83,6 @@ show_missing_stacked_graph <- function(df, select_on, alphabetized_values) {
   return(p)
 }
 
-show_missing_stacked_graph <- function(df, select_on, alphabetized_values) {
-  df_long <- df %>%
-    select(select_on) %>%
-    gather(key = "Category", value = "Response")
-  p <- ggplot(df_long, aes(x = Category, fill = Response)) +
-    geom_bar(position = "stack") +
-    labs(title = select_on,
-         x = "Category",
-         y = "Count") +
-    theme_minimal()
-  return(p)
-}
-
 view_other_write_ins <- function(df, this_col_name, og_col_name) {
   # drop NAs
   short_df <- df[rowSums(is.na(df)) != ncol(df), ]
@@ -109,79 +98,81 @@ view_other_write_ins <- function(df, this_col_name, og_col_name) {
 
 
 # GET DATA FROM SURVEYMONKEY
-excel_path <- "School-Choice-For-CCNY-2023-11-30-4pm.xlsx"
-clean_df <- read_excel(path = excel_path)
+# clean_df <- read.csv("School-Choice-For-CCNY-2023-12-03-10pm.csv", header=T, na.strings=c("","NA"))
+clean_df <- read_excel(path = "School-Choice-For-CCNY-2023-12-03-10pm.xlsx")
 
 # CLEANING DATA
 # storing the sub-questions (and then intentionally removing them)
 df_sub_questions <- slice(clean_df, 1)
 clean_df <- clean_df[-1, , drop = FALSE]
-# let's drop everyone who said "1..." or "2..." for seriousness of search
-column_name <- "During the past 12 months, how seriously have you considered enrolling your child/children in a different K-12 school in the US?"
 
-clean_df <- clean_df %>%
-  filter(!(str_trim(clean_df[[column_name]]) %in% c("1 - I did not consider switching schools", 
-                                              "2 - I considered switching, but decided not to switch, so I did not research schools", 
-                                              "2 - I considered switching, but decided to not switch, so I did not research schools")))
-
+#REMOVING BAD APPLES
 # drop everyone who said they didn't have K-12 kids
 column_name="Are you a parent or guardian of school-aged (K-12) child/children currently living in the US?"
 clean_df <- clean_df %>%
   filter(!(str_trim(clean_df[[column_name]]) %in% c("No", 
                                               "No ")))
+# or didn't answer (if parent)
+clean_df <- clean_df[!is.na(clean_df[[column_name]]), ]
+# check
+print(unique(clean_df[column_name]))
+
+# drop folks who weren't serious about switching
+column_name <- "During the past 12 months, how seriously have you considered enrolling your child/children in a different K-12 school in the US?"
+
+clean_df <- clean_df %>%
+  filter(!(str_trim(clean_df[[column_name]]) %in% c("1 - I did not consider switching schools", 
+                                                    "2 - I considered switching, but decided not to switch, so I did not research schools", 
+                                                    "2 - I considered switching, but decided to not switch, so I did not research schools", 
+                                                    "NA - I do not have kids in K-12 schools in the US")))
+
+# or didn't answer (serious about switching)
+clean_df <- clean_df[!is.na(clean_df[[column_name]]), ]
+# check
+print(unique(clean_df[column_name]))
+
+
 # TO RE-START
 df <- clean_df
 
 # PARTICIPANTS
 # SERIOUSNESS OF SWITCHING
 select_on = "During the past 12 months, how seriously have you considered enrolling your child/children in a different K-12 school in the US?"
-one_stacked_graph(df[,12], select_on)
+one_stacked_bar(df, select_on)
 
 # REASON TO BEGIN SWITCH
-view_other_write_ins(df[,14], colnames(df)[14], colnames(df)[13])
-reason_to_search <- df[,13, drop = FALSE]
-# remove folks who didn't share an answer
-reason_to_search <- reason_to_search[rowSums(is.na(reason_to_search)) != ncol(reason_to_search), ]
 select_on = "Which best describes why you began researching K-12 schools for your child to attend?"
-title_graph <- select_on
-plot_histo(reason_to_search, title_graph, select_on)
+title_graph = "Reasons to start school search"
+plot_histo(df, title_graph, select_on)
 
 # PLANNING TO MOVE? 
-# "During your K-12 school search, were you planning on moving?"
-moving_df <- df[,15]
-# remove folks who reported moving was not why they started to
-moving_df <- moving_df[rowSums(is.na(moving_df)) != ncol(moving_df), ]
 select_on = "During your K-12 school search, were you planning on moving?"
-title_graph = "If moving was why began researching, they are moving..."
+moving_df <- moving_df[rowSums(is.na(moving_df)) != ncol(moving_df), ]
+title_graph = "If moving was reason for search: they are moving..."
 plot_histo(moving_df, title_graph, select_on)
 
-# CHILD GRADUATING & MOVING TO ES, MS, HS
-# In many school districts, most graduates of one school all go to an assigned "feeder" school together (eg, elementary students are "fed" into the same middle school, middle school students are "fed" into the same high school) unless parents choose otherwise. Will your child be attending their assigned feeder school?
-grad_df <- df[,16]
-grad_df <- grad_df[rowSums(is.na(grad_df)) != ncol(grad_df), ]
+# CHILD GRADUATING/READY TO START ES, MS, HS
 select_on = 'In many school districts, most graduates of one school all go to an assigned "feeder" school together (eg, elementary students are "fed" into the same middle school, middle school students are "fed" into the same high school) unless parents choose otherwise. Will your child be attending their assigned feeder school?'
+grad_df <- grad_df[rowSums(is.na(grad_df)) != ncol(grad_df), ]
 title_graph = "If graduating was why began researching, their kid is..."
 plot_histo(grad_df, title_graph, select_on)
 
 # CURRENT PHASE IN SCHOOL CHOICE JOURNEY
 # "Where are you at with your K-12 school search?"
-current_phase_df <- df[,17]
-current_phase_df <- current_phase_df[rowSums(is.na(current_phase_df)) != ncol(current_phase_df), ]
+# current_phase_df <- df[,17]
+# current_phase_df <- current_phase_df[rowSums(is.na(current_phase_df)) != ncol(current_phase_df), ]
 select_on = "Where are you at with your K-12 school search?"
 title_graph = "Current phase in school search journey"
-plot_histo(current_phase_df, title_graph, select_on)
+plot_histo(df, title_graph, select_on)
 
 # SCHOOL TYPE
 # What kind of K-12 school were you considering? Select all that apply.
-type_df <- df[,18:23]
-colnames(type_df) <- df_sub_questions[,18:23, drop = FALSE]
-type_df <- type_df[rowSums(is.na(type_df)) != ncol(type_df), ]
-# remove the "none of the above" column
-type_df <- type_df[,2:6]
+type_school_df <- df[,18:23]
+colnames(type_school_df) <- df_sub_questions[,18:23, drop = FALSE]
 name_x_axis = "What kind of K-12 school were you considering? Select all that apply."
 name_y_axis = "Count"
 title_graph = "Did/did not consider schools of these types"
-many_bars_stacked(type_df, title_graph, name_x_axis, name_y_axis, "yes or no")
+many_bars_stacked(type_school_df, title_graph, name_x_axis, name_y_axis, "yes or no")
 
 # KIDS' GRADES DURING SEARCH; X~AK aka 23-37
 grade_level_df <- df[, 24:37, drop = FALSE]
@@ -237,22 +228,24 @@ plot_histo(income_df, title_graph, x_vals)
 # skill_or_mindset_to_develop
 
 # RACIAL IDENTITY; BH-BO aka 60-67
-visualize_split_col <-df[,60:67, drop = FALSE]
-colnames(visualize_split_col) <- df_sub_questions[,60:67, drop = FALSE]
-
-# drop folks who did not select a racial identity
-visualize_split_col <- visualize_split_col[rowSums(is.na(visualize_split_col)) != ncol(visualize_split_col), ]
-
-# then set variables and graph bar (white v. not-white; Black v. not-Black, etc)
+race_df <-df[,60:67, drop = FALSE]
+colnames(race_df) <- df_sub_questions[,60:67, drop = FALSE]
+race_df <- race_df[rowSums(is.na(race_df)) != ncol(race_df), ]
 key_col = "racial_identity"
 preferred_order = c("American Indian or Alaska Native", "Asian", "Black or African American", 
                     "Middle Eastern or North African (e.g. Arab, Kurd, Persian. Turkish)", 
                     "Native Hawaiian and Pacific Islander", "White (e.g. German, Irish, English, American, Italian, Polish)", 
                     "I prefer not to answer", "My identity is not on the list")
 title_graph = "reported their race"
-plot_stacked(visualize_split_col, key_col, count_responses, title_graph, preferred_order)
-# HOW TO: check number of options selected per respodent
-# visualize_split_col$responded <-rowSums(!is.na(visualize_split_col))
+count_responses = as.numeric(length(rowSums(!is.na(race_df))))
+race_df <- replace(race_df, is.na(race_df), "FALSE")
+race_df <- replace(race_df, race_df != "FALSE", "TRUE")
+plot_stacked(race_df, key_col, count_responses, title_graph, preferred_order)
+
+
+
+
+plot_stacked(race_df, key_col, count_responses, title_graph, preferred_order)
 
 # SOURCE; (SurveyMonkey or UT?)
 # TODO: make pie chart
@@ -277,7 +270,7 @@ name_x_axis = "Aspects of K-12 school"
 many_bars_stacked(subset_df, title_graph, name_x_axis, name_y_axis, name_key)
 # making custom graph for each column
 for (col in colnames(subset_df)) {
-  print(one_stacked_graph(subset_df, col))
+  print(one_stacked_bar(subset_df, col))
 }
 # find count of folks who reponded "did not consider" for any given question
 count_df <- data.frame(column_name = character(0), "NA - Did not consider this" = integer(0), "Other Values" = integer(0), stringsAsFactors = FALSE)
