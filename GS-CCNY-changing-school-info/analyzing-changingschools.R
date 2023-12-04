@@ -8,7 +8,7 @@ library(dplyr)
 
 
 # FUNCTIONS
-many_bars_stacked <- function(subset_df, title_graph, name_x_axis, name_y_axis, name_key) {
+many_bars_stacked <- function(subset_df, title_graph, name_x_axis, name_y_axis, name_for_key) {
   subset_df_long <- subset_df %>%
     gather(key = "Category", value = "Response")
   
@@ -18,38 +18,12 @@ many_bars_stacked <- function(subset_df, title_graph, name_x_axis, name_y_axis, 
     labs(title = title_graph,
          x = name_x_axis,
          y = name_y_axis, 
-         fill = name_key) +
+         fill = name_for_key) +
     theme_minimal()
   
   return(p)
 }
 
-plot_histo <- function(df, title_graph, x_vals) {
-  p <- ggplot(df, aes(x = !!rlang::sym(x_vals))) +
-    geom_bar() +
-    labs(title = title_graph,
-         x = x_vals,
-         y = "Count") +
-    theme_minimal() + 
-    theme(axis.text.x = element_text(angle = 20, hjust = 1))
-  return(p)
-}
-
-
-plot_stacked <- function(df, key_col, count_responses, title_graph, preferred_order) {
-  df <- tidyr::gather(df, key = key_col, value = "Value")
-  df$key_col <- factor(df$key_col, levels = preferred_order)
-  
-  p <- ggplot(df, aes(x = key_col, fill = factor(Value))) +
-    geom_bar(stat = "count") +
-    labs(title = paste("Some parents (n =", count_responses, ") ", title_graph),
-         x = key_col,
-         y = "Count") +
-    scale_fill_brewer(palette = "Set3") +
-    theme_minimal()
-  
-  return(p)
-}
 
 one_stacked_bar <- function(df, select_on) {
   df_long <- df %>%
@@ -96,6 +70,36 @@ view_other_write_ins <- function(df, this_col_name, og_col_name) {
   }
 }
 
+# COMPLETED FUNCTIONS
+# simple histogram
+plot_histo <- function(df, title_graph, x_vals) {
+  p <- ggplot(df, aes(x = !!rlang::sym(x_vals))) +
+    geom_bar() +
+    labs(title = title_graph,
+         x = x_vals,
+         y = "Count") +
+    theme_minimal() + 
+    theme(axis.text.x = element_text(angle = 20, hjust = 1))
+  return(p)
+}
+
+# convert multi-col data to TRUE/FALSE and then visualize
+plot_stacked <- function(df, key_col, count_responses, title_graph, preferred_order) {
+  df <- tidyr::gather(df, key = key_col, value = "Value")
+  df$key_col <- factor(df$key_col, levels = preferred_order)
+  
+  p <- ggplot(df, aes(x = key_col, fill = factor(Value))) +
+    geom_bar(stat = "count") +
+    labs(title = paste("Some parents (n =", count_responses, ") ", title_graph),
+         x = key_col,
+         y = "Count") +
+    scale_fill_brewer(palette = "Set3") +
+    theme_minimal()
+  
+  return(p)
+}
+
+
 
 # GET DATA FROM SURVEYMONKEY
 # clean_df <- read.csv("School-Choice-For-CCNY-2023-12-03-10pm.csv", header=T, na.strings=c("","NA"))
@@ -132,13 +136,14 @@ clean_df <- clean_df[!is.na(clean_df[[column_name]]), ]
 print(unique(clean_df[column_name]))
 
 
-# TO RE-START
+# SET DF TO CLEAN DATA
 df <- clean_df
 
 # PARTICIPANTS
 # SERIOUSNESS OF SWITCHING
 select_on = "During the past 12 months, how seriously have you considered enrolling your child/children in a different K-12 school in the US?"
 one_stacked_bar(df, select_on)
+
 
 # REASON TO BEGIN SWITCH
 select_on = "Which best describes why you began researching K-12 schools for your child to attend?"
@@ -168,11 +173,14 @@ plot_histo(df, title_graph, select_on)
 # SCHOOL TYPE
 # What kind of K-12 school were you considering? Select all that apply.
 type_school_df <- df[,18:23]
-colnames(type_school_df) <- df_sub_questions[,18:23, drop = FALSE]
+correct_school_types <- df_sub_questions[,18:23, drop = FALSE]
+colnames(type_school_df) <- correct_school_types
 name_x_axis = "What kind of K-12 school were you considering? Select all that apply."
 name_y_axis = "Count"
 title_graph = "Did/did not consider schools of these types"
-many_bars_stacked(type_school_df, title_graph, name_x_axis, name_y_axis, "yes or no")
+name_for_key = "yes or no"
+many_bars_stacked(type_school_df, title_graph, name_x_axis, name_y_axis, name_for_key)
+  
 
 # KIDS' GRADES DURING SEARCH; X~AK aka 23-37
 grade_level_df <- df[, 24:37, drop = FALSE]
@@ -200,7 +208,6 @@ plot_histo(important_search_factor, title_graph, select_on)
 alphabetized_values <- sort(unlist(df_sub_questions[, 39:56, drop = FALSE][1,]))
 show_missing_stacked_graph(important_search_factor, select_on, alphabetized_values)
 
-
 # MOST IMPORTANT TO SUCCEED AT; BE aka 56
 x_vals = "I believe the most important thing for my child/children to succeed at is:"
 title_graph <- x_vals
@@ -217,15 +224,11 @@ plot_histo(df, title_graph, x_vals)
 income_df <-df [,59, drop = FALSE]
 custom_order <- c("$0 - 25,000/year", "$25,000 - 50,000/year", "$50,000 - 75,000/year", "$75,000-100,000/year", "$100,000/year or more", "I prefer not to disclose", "NA")
 income_df$`What is your household’s range of income?` <- factor(df$`What is your household’s range of income?`, levels = custom_order)
-# remove folks who did not share an answer
-income_df <- income_df[rowSums(is.na(income_df)) != ncol(income_df), ]
 # graph it
 title_graph = "Household Income Distribution"
 x_vals = "What is your household’s range of income?"
 plot_histo(income_df, title_graph, x_vals)
 
-
-# skill_or_mindset_to_develop
 
 # RACIAL IDENTITY; BH-BO aka 60-67
 race_df <-df[,60:67, drop = FALSE]
@@ -243,13 +246,8 @@ race_df <- replace(race_df, race_df != "FALSE", "TRUE")
 plot_stacked(race_df, key_col, count_responses, title_graph, preferred_order)
 
 
-
-
-plot_stacked(race_df, key_col, count_responses, title_graph, preferred_order)
-
 # SOURCE; (SurveyMonkey or UT?)
-# TODO: make pie chart
-
+# TODO: visualize
 
 
 # VISUALIZATION
@@ -265,9 +263,9 @@ subset_df <- subset_df[rowSums(is.na(subset_df)) != ncol(subset_df), ]
 # print(has_na)
 title_graph = "Ease/difficulty finding info on aspects of K-12 school"
 name_y_axis = "Count"
-name_key = "Difficulty finding info"
+name_for_key = "Difficulty finding info"
 name_x_axis = "Aspects of K-12 school"
-many_bars_stacked(subset_df, title_graph, name_x_axis, name_y_axis, name_key)
+many_bars_stacked(subset_df, title_graph, name_x_axis, name_y_axis, name_for_key)
 # making custom graph for each column
 for (col in colnames(subset_df)) {
   print(one_stacked_bar(subset_df, col))
