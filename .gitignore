@@ -1,4 +1,6 @@
 # added manually:
+# ignore data visualizations as PNGs
+*.png
 # ignore raw files from usertesting
 *.xlsx
 *.csv
