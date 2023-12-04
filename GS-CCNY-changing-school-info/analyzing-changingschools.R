@@ -38,9 +38,8 @@ one_stacked_bar <- function(df, select_on) {
   p <- ggplot(df_long, aes(x = Category, fill = Response)) +
     geom_bar(position = "stack") +
     geom_text(
-      # aes(label = Value)),
-      aes(label = paste("n =", after_stat(count))),
-      # aes(label = after_stat(count)),
+      aes(label = Response),
+      # aes(label = paste("n =", after_stat(count))),
       stat = "count",
       position = position_stack(vjust = 0.5), # adjust the vertical position of labels
       size = 3 # adjust the size of labels
@@ -151,8 +150,8 @@ plot_stacked <- function(df, key_col, count_responses, title_graph, preferred_or
   p <- ggplot(df, aes(x = key_col, fill = factor(Value))) +
     geom_bar(stat = "count") +
     geom_text(
-      aes(label = ifelse(Value == "TRUE", str_to_upper(as.character(key_col)), Value)),
-      # aes(label = paste("n =", after_stat(count))),
+      # aes(label = ifelse(Value == "TRUE", str_to_upper(as.character(key_col)), Value)),
+      aes(label = paste("n =", after_stat(count))),
       stat = "count",
       position = position_stack(vjust = 0.5), angle = 90, # adjust the vertical position of labels
       size = 3 # adjust the size of labels
@@ -160,7 +159,6 @@ plot_stacked <- function(df, key_col, count_responses, title_graph, preferred_or
     labs(title = paste("Some parents (n =", count_responses, ") ", title_graph),
          x = key_col,
          y = "Count") +
-    scale_fill_brewer(palette = "Set3") +
     theme_minimal()
   
   return(p)
@@ -253,12 +251,6 @@ many_bars_stacked(type_school_df, title_graph, name_x_axis, name_y_axis, name_fo
 # KIDS' GRADES DURING SEARCH; X~AK aka 23-37
 grade_level_df <- df[, 24:37, drop = FALSE]
 colnames(grade_level_df) <- df_sub_questions[, 24:37, drop = FALSE]
-title_graph <- "students' grade level during search"
-name_for_key = "true/false"
-name_x_axis = "grades"
-name_y_axis = "count"
-# graph all grades
-many_bars_stacked(grade_level_df, title_graph, name_x_axis, name_y_axis, name_for_key)
 
 # prep for school level graphing
 grade_level_df$non_na_count <- rowSums(!is.na(grade_level_df))
@@ -269,7 +261,7 @@ grade_level_df$high <- rowSums(!is.na(df[, 34:37])) > 0
 elem_mid_high_df <- grade_level_df %>% select("elem", "mid", "high")
 key_col <- "Grade_Level"
 sum_reported_kids_grade <- sum(rowSums(grade_level_df[, c("elem", "mid", "high")]) > 0)
-title_graph <- "reported kids' grade during search"
+title_graph <- "students' grade level during search"
 preferred_order <- c("elem", "mid", "high")
 # df <- grade_level_df %>% select("elem", "mid", "high")
 # key_col <- "Grade_Level"
@@ -278,7 +270,12 @@ preferred_order <- c("elem", "mid", "high")
 # preferred_order <- c("elem", "mid", "high")
 plot_stacked(elem_mid_high_df, key_col, sum_reported_kids_grade, title_graph, preferred_order)
 
-# MOST IMPORTANT FACTOR OF MY SEARCH; AL aka
+preferred_order <- c("Not yet enrolled (pre-K, day care, etc)", "Kingergarten", "1", 
+                     "2", "3", "4", "5", "6",  "7", "8", "9", "10", "11",  "12")
+plot_stacked(grade_level_df[,1:14], key_col, sum_reported_kids_grade, title_graph, preferred_order)
+
+
+# PARENTS' MOST IMPORTANT FACTOR OF MY SEARCH; AL aka
 # "The most important factor of my school search was"
 important_search_factor <- df[,38]
 important_search_factor <- important_search_factor[rowSums(is.na(important_search_factor)) != ncol(important_search_factor), ]
@@ -287,6 +284,12 @@ title_graph = "Most important factor of my school search was:"
 # plot_histo(important_search_factor, title_graph, select_on)
 alphabetized_values <- sort(unlist(df_sub_questions[, 39:56, drop = FALSE][1,]))
 show_missing_stacked_graph(important_search_factor, select_on, alphabetized_values)
+# then step back from narrow to broad categories
+broad_df <- important_search_factor %>%
+  mutate(broad_categories = str_extract(important_search_factor[[select_on]], "\\w+"))
+colnames(broad_df) <- c("OG stuff", select_on)
+one_stacked_bar(broad_df, select_on)
+
 
 # MOST IMPORTANT TO SUCCEED AT; BE aka 56
 x_vals = "I believe the most important thing for my child/children to succeed at is:"
