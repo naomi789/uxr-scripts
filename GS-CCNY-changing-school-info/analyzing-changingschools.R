@@ -252,6 +252,15 @@ many_bars_stacked(type_school_df, title_graph, name_x_axis, name_y_axis, name_fo
 
 # KIDS' GRADES DURING SEARCH; X~AK aka 23-37
 grade_level_df <- df[, 24:37, drop = FALSE]
+colnames(grade_level_df) <- df_sub_questions[, 24:37, drop = FALSE]
+title_graph <- "students' grade level during search"
+name_for_key = "true/false"
+name_x_axis = "grades"
+name_y_axis = "count"
+# graph all grades
+many_bars_stacked(grade_level_df, title_graph, name_x_axis, name_y_axis, name_for_key)
+
+# prep for school level graphing
 grade_level_df$non_na_count <- rowSums(!is.na(grade_level_df))
 grade_level_df$elem <- rowSums(!is.na(df[, 24:30])) > 0
 grade_level_df$mid <- rowSums(!is.na(df[, 31:33])) > 0
