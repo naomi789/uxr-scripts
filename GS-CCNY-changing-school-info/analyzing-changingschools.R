@@ -288,7 +288,11 @@ show_missing_stacked_graph(important_search_factor, select_on, alphabetized_valu
 broad_df <- important_search_factor %>%
   mutate(broad_categories = str_extract(important_search_factor[[select_on]], "\\w+"))
 colnames(broad_df) <- c("OG stuff", select_on)
+print(broad_df)
 one_stacked_bar(broad_df, select_on)
+# and a histo of it
+plot_histo(broad_df, title_graph, select_on)
+
 
 
 # MOST IMPORTANT TO SUCCEED AT; BE aka 56
