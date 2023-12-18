@@ -26,10 +26,11 @@ one_stacked_bar <- function(df, select_on) {
 
 # MERGE CLEAN DATA
 any_satisfaction <- read_csv("ANY-SATISFACTION-COMMUNICATING-2023-12.csv")
-very_or_satisfied <- read_csv("VERYSATISFIED_OR_SATISFIED-2023-12.csv")
-verynot_or_notsatisfied <- read_csv("VERYNOTSATISFIED_OR_NOT_SATISFIED-2023-12.csv")
-all_responses <- bind_rows(very_or_satisfied, verynot_or_notsatisfied, any_satisfaction)
-df <- all_responses
+df <- any_satisfaction
+# very_or_satisfied <- read_csv("VERYSATISFIED_OR_SATISFIED-2023-12.csv")
+# verynot_or_notsatisfied <- read_csv("VERYNOTSATISFIED_OR_NOT_SATISFIED-2023-12.csv")
+# all_responses <- bind_rows(very_or_satisfied, verynot_or_notsatisfied, any_satisfaction)
+# df <- all_responses
 
 # SATISFACTION
 select_on = "How satisfied are you currently with the quality of your child's TEACHER? Why?"
