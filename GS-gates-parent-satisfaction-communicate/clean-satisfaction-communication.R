@@ -44,7 +44,7 @@ school_relationship = metrics[63,][1:12]
 school_freq = metrics[67,][1:12]
 school_method = metrics[84,][1:12]
 school_topics = metrics[88,][1:12]
-district_url = metrics[128,][1:12]
+district_url = metrics[108,][1:12]
 list_data <- list(unlist(income), unlist(satis_district), 
                   unlist(satis_school), unlist(satis_teacher), unlist(school_relationship), 
                   unlist(school_freq), unlist(school_method), unlist(school_topics), 
@@ -72,7 +72,7 @@ school_relationship = metrics[63,][1:12]
 school_freq = metrics[67,][1:12]
 school_method = metrics[84,][1:12]
 school_topics = metrics[88,][1:12]
-district_url = metrics[128,][1:12]
+district_url = metrics[108,][1:12]
 list_data <- list(unlist(income), unlist(satis_district), 
                   unlist(satis_school), unlist(satis_teacher), unlist(school_relationship), 
                   unlist(school_freq), unlist(school_method), unlist(school_topics), 
