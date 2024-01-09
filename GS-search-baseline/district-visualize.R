@@ -26,8 +26,6 @@ urban_desktop_district <- read_csv("cleaned-data/URBAN-MOBILE-DISTRICT-QA-2024-0
 colnames(urban_desktop_district) <- lapply(names(urban_desktop_district), function(x) substr(x, start = 1, stop = 32))
 urban_df <- bind_rows(urban_mobile_district, urban_desktop_district)
 
-
-
 # combine them into one big df
 full_df <- bind_rows(suburban_df, urban_df, rural_df)
 
