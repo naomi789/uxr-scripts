@@ -22,7 +22,7 @@ suburban_df <- bind_rows(suburban_mobile_district, suburban_desktop_district)
 
 urban_mobile_district <- read_csv("cleaned-data/URBAN-MOBILE-DISTRICT-QA-2024-01.csv") %>% janitor::clean_names()
 colnames(urban_mobile_district) <- lapply(names(urban_mobile_district), function(x) substr(x, start = 1, stop = 32))
-urban_desktop_district <- read_csv("cleaned-data/URBAN-MOBILE-DISTRICT-QA-2024-01.csv") %>% janitor::clean_names()
+urban_desktop_district <- read_csv("cleaned-data/URBAN-DESKTOP-DISTRICT-QA-2024-01.csv") %>% janitor::clean_names()
 colnames(urban_desktop_district) <- lapply(names(urban_desktop_district), function(x) substr(x, start = 1, stop = 32))
 urban_df <- bind_rows(urban_mobile_district, urban_desktop_district)
 
@@ -32,15 +32,14 @@ full_df <- bind_rows(suburban_df, urban_df, rural_df)
 # TODO: remove before final run
 # full_df <- full_df[!is.na(full_df$username),]
 
-# stack remote and local questions
+# to stack the remote and local questions
+# find remote ones
 local_df <- full_df %>% select(-contains("remote_"))
-# note that these answers are for local schools
+# note which answers were for local schools
 local_df$search_type <- "local"
 # write.csv(local_df, "local_df.csv")
-
-
-# next, get all the remote ones AND the first 15 columns
-remote_df <- full_df[c(1:15, 34:50)]
+# next, get all the remote columns (in this case, last 11) AND the columns with participant data (first 11)
+remote_df <- full_df[c(1:11, 24:34)]
 remote_df$search_type <- "remote"
 # write.csv(remote_df, "remote_df.csv")
 
@@ -61,7 +60,7 @@ remote_df <- remote_df %>% mutate(ease_how_easily_were_you_ = as.character(ease_
 remote_df <- remote_df %>% mutate(loading_how_satisfied_wer = as.character(loading_how_satisfied_wer))
 
 
-# then combine the two columns into one df
+# then combine the two into one df
 df <- bind_rows(local_df, remote_df)
 
 # last fix??? 
@@ -69,41 +68,7 @@ df <- bind_rows(local_df, remote_df)
 df <- df %>% mutate(device = ifelse(device == "Smartphone (unconfirmed)", "Smartphone", device))
 
 # and save it
-write.csv(df, "no_unconfirmed-smartphones-combined-local-remote.csv")
-
-
-# NUMERIC
-# time, clicks, pages, unique_pages
-# TIME ON TASK (IN SECONDS)
-hist(df$`time_on_task_seconds`)
-bar_x = "time_on_task_seconds"
-comparing_on = "device"
-title_graph = "Time on Task / Device"
-p <- compare_histogram(df, bar_x, comparing_on, title_graph, 20)
-p 
-
-# NUM CLICKS
-hist(df$`clicks`)
-bar_x = "clicks"
-comparing_on = "device"
-title_graph = "Clicks / Device"
-p <- compare_histogram(df, bar_x, comparing_on, title_graph, 5)
-p 
-
-# NUM PAGES
-hist(df$`pages`)
-bar_x = "pages"
-comparing_on = "device"
-title_graph = "Pages / Device"
-p <- compare_histogram(df, bar_x, comparing_on, title_graph, 3)
-p 
-
-# NUM UNIQUE PAGES
-hist(df$`unique_pages`)
-bar_x = "unique_pages"
-comparing_on = "device"
-title_graph = "unique pages / device"
-compare_histogram(df, bar_x, comparing_on, title_graph, 3)
+write.csv(df, "cleaned-data/no_unconfirmed-smartphones-combined-both-local-and-remote.csv")
 
 # stacked bar graph UX and COMMUNITY
 bar_x = "how_would_you_describe_th"
@@ -170,49 +135,49 @@ p
 
 # stacked bar graph SUCCESS and COMMUNITY
 bar_x = "how_would_you_describe_th"
-bar_fill = "success_how_confident_are"
+bar_fill = "were_you_able_to_find_the"
 title_graph = "SUCCESS / COMMUNITY"
 p <- stacked_bar(df, bar_x, bar_fill, title_graph) 
 p
 
 # stacked bar graph SUCCESS and DEVICE
 bar_x = "device"
-bar_fill = "success_how_confident_are"
+bar_fill = "were_you_able_to_find_the"
 title_graph = "SUCCESS / DEVICE"
 p <- stacked_bar(df, bar_x, bar_fill, title_graph) 
 p
 
 # stacked bar graph SUCCESS and SEARCHTYPE
 bar_x = "search_type"
-bar_fill = "success_how_confident_are"
+bar_fill = "were_you_able_to_find_the"
 title_graph = "ATTEMPTS / SEARCH TYPE"
 p <- stacked_bar(df, bar_x, bar_fill, title_graph) 
 p
 
 
 # string graph LOCATION / COMMUNITY
-bar_x = "if_you_set_the_location_f"
+bar_x = "in_your_search_for_the_sc"
 comparing_on = "how_would_you_describe_th"
 title_graph = "initially set location to"
 p <- string_bar(df, bar_x, comparing_on, title_graph)
 p
 
 # string graph LOCATION / DEVICE
-bar_x = "if_you_set_the_location_f"
+bar_x = "in_your_search_for_the_sc"
 comparing_on = "device"
 title_graph = "initially set location to"
 p <- string_bar(df, bar_x, comparing_on, title_graph)
 p
 
 # graph LOCATION / SEARCHTYPE
-bar_x = "if_you_set_the_location_f"
+bar_x = "in_your_search_for_the_sc"
 comparing_on = "search_type"
 title_graph = "LOCATION / SEARCH TYPE"
 p <- string_bar(df, bar_x, comparing_on, title_graph)
 p
 
 # pie chart locations
-bar_fill = "if_you_set_the_location_f"
+bar_fill = "in_your_search_for_the_sc"
 title_graph = "set location as"
 p <- pie_chart(df, bar_fill, title_graph)
 p
