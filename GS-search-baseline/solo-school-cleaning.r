@@ -246,7 +246,25 @@ tidy_merged_df_and_save <- function(full_df, final_file_name) {
 }
 
 quality_assurance <- function(df) {
-
+  # should be 15*6 unique completed tests. Ideally that many unique usernames, too. 
+  assert_that(length(unique(df$test_id_number)) == 90, msg = "ERROR: wrong number of completed tests\n\n\n\n\n")
+  assert_that(length(unique(df$username)) == 90, msg = "ERROR: wrong number of unique participant usernames\n\n\n\n\n")
+  
+  # should be 15*6*2 rows of data
+  assert_that(nrow(df) == 180, msg = "ERROR: wrong number of rows")
+  
+  # should be 50/50 "device"="Smartphone" and "device"="Computer"
+  assert_that(sum(df$device == "Smartphone") == 90, sum(df$device == "Computer") == 90, msg = "ERROR: wrong number of device(s)")
+  
+  # should be exactly 33/33/33 "how_would_you_describe_th"=["Urban", Suburban", "Rural"]
+  assert_that(sum(df$how_would_you_describe_th == "Urban") == 60, msg = "ERROR: wrong number of urban")
+  assert_that(sum(df$how_would_you_describe_th == "Suburban") == 60, msg = "ERROR: wrong number of suburban")
+  assert_that(sum(df$how_would_you_describe_th == "Rural") == 60, msg = "ERROR: wrong number of rural")
+  
+  # at least 33% should be not NA "has_elementary_schoolers"; "has_middle_schoolers"; "has_high_schoolers"
+  assert_that(sum(!is.na(df$has_elementary_schoolers)) >= 60, msg = "ERROR: wrong number of ES")
+  assert_that(sum(!is.na(df$has_middle_schoolers)) >= 60, msg = "ERROR: wrong number of MS")
+  assert_that(sum(!is.na(df$has_high_schoolers)) >= 60, msg = "ERROR: wrong number of HS")
 }
 
 # FOR BOTH RURALS
