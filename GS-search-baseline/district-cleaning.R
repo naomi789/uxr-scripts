@@ -269,11 +269,11 @@ quality_assurance <- function(df) {
 remote_school_name = rep(list("Wenatchee School District"), 16)
 community_row_num = 34
 # FOR RURAL MOBILE
-excel_path <- "original-data-district/district/UserTesting-Test_Metrics-4898561-RURAL-MOBILE-DISTRICT-ED-SEARC-2024-01-08-132203.xlsx"
+excel_path <- "original-data-all/district/UserTesting-Test_Metrics-4898561-RURAL-MOBILE-DISTRICT-ED-SEARC-2024-01-08-132203.xlsx"
 file_name = "cleaned-data-district/RURAL-MOBILE-DISTRICT-QA-2024-01.csv"
 df <- main_clean_district_data(excel_path, file_name, remote_school_name, community_row_num)
 # FOR RURAL DESKTOP
-excel_path <- "original-data-district/district/UserTesting-Test_Metrics-4895729-RURAL-DESKTOP-DISTRICT-ED-SEAR-2024-01-08-132148.xlsx"
+excel_path <- "original-data-all/district/UserTesting-Test_Metrics-4895729-RURAL-DESKTOP-DISTRICT-ED-SEAR-2024-01-08-132148.xlsx"
 file_name = "cleaned-data-district/RURAL-DESKTOP-DISTRICT-QA-2024-01.csv"
 df <- main_clean_district_data(excel_path, file_name, remote_school_name, community_row_num)
 
@@ -281,11 +281,11 @@ df <- main_clean_district_data(excel_path, file_name, remote_school_name, commun
 remote_school_name = rep(list("Kent School District"), 16)
 community_row_num = 35
 # FOR SUBURBAN MOBILE
-excel_path <- "original-data-district/district/UserTesting-Test_Metrics-4958971-SUBURBAN-MOBILE-DISTRICT-ED-SE-2024-01-08-145340.xlsx"
+excel_path <- "original-data-all/district/UserTesting-Test_Metrics-4958971-SUBURBAN-MOBILE-DISTRICT-ED-SE-2024-01-08-145340.xlsx"
 file_name = "cleaned-data-district/SUBURBAN-MOBILE-DISTRICT-QA-2024-01.csv"
 df <- main_clean_district_data(excel_path, file_name, remote_school_name, community_row_num)
 # FOR SUBURBAN DESKTOP
-excel_path <- "original-data-district/district/UserTesting-Test_Metrics-4958981-SUBURBAN-DESKTOP-DISTRICT-ED-S-2024-01-08-145448.xlsx"
+excel_path <- "original-data-all/district/UserTesting-Test_Metrics-4958981-SUBURBAN-DESKTOP-DISTRICT-ED-S-2024-01-08-145448.xlsx"
 file_name = "cleaned-data-district/SUBURBAN-DESKTOP-DISTRICT-QA-2024-01.csv"
 df <- main_clean_district_data(excel_path, file_name, remote_school_name, community_row_num)
 
@@ -293,11 +293,11 @@ df <- main_clean_district_data(excel_path, file_name, remote_school_name, commun
 remote_school_name = rep(list("Seattle Public Schools"), 16)
 community_row_num = 36
 # FOR URBAN MOBILE
-excel_path <- "original-data-district/district/UserTesting-Test_Metrics-4898560-URBAN-MOBILE-DISTRICT-ED-2024-01-08-131937.xlsx"
+excel_path <- "original-data-all/district/UserTesting-Test_Metrics-4898560-URBAN-MOBILE-DISTRICT-ED-2024-01-08-131937.xlsx"
 file_name = "cleaned-data-district/URBAN-MOBILE-DISTRICT-QA-2024-01.csv"
 df <- main_clean_district_data(excel_path, file_name, remote_school_name, community_row_num)
 # FOR URBAN DESKTOP
-excel_path <- "original-data-district/district/UserTesting-Test_Metrics-4898559-URBAN-DESKTOP-DISTRICT-ED-2024-01-08-131819.xlsx"
+excel_path <- "original-data-all/district/UserTesting-Test_Metrics-4898559-URBAN-DESKTOP-DISTRICT-ED-2024-01-08-131819.xlsx"
 file_name = "cleaned-data-district/URBAN-DESKTOP-DISTRICT-QA-2024-01.csv"
 df <- main_clean_district_data(excel_path, file_name, remote_school_name, community_row_num)
 
