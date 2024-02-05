@@ -193,7 +193,7 @@ merging_df <- function() {
   full_df <- bind_rows(suburban_df, urban_df, rural_df)
 }
 
-tidy_merged_df_and_save <- function(full_df) {
+tidy_merged_df_and_save <- function(full_df, final_file_name) {
   # DO NOT USE - this is the syntax to remove NA
   # full_df <- full_df[!is.na(full_df$username),]
   
@@ -233,7 +233,7 @@ tidy_merged_df_and_save <- function(full_df) {
   df <- df %>% mutate(device = ifelse(device == "Smartphone (unconfirmed)", "Smartphone", device))
   
   # and save it
-  write.csv(df, "cleaned-data/no_unconfirmed-smartphones-combined-both-local-and-remote.csv")
+  write.csv(df, final_file_name)
   
   return(df)
 }
@@ -304,7 +304,7 @@ df <- main_clean_district_data(excel_path, file_name, remote_school_name, commun
 # NOW MERGE ALL SIX DF
 full_df <- merging_df()
 # AND DO LAST TIDY OF THEM
-df <- tidy_merged_df_and_save(full_df)
+df <- tidy_merged_df_and_save(full_df, "cleaned-data/no_unconfirmed-smartphones-combined-both-local-and-remote.csv")
 #QUALITY ASSURANCE
 quality_assurance(df)
   
