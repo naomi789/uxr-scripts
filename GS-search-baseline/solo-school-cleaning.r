@@ -7,30 +7,30 @@ library(janitor)
 # https://rpubs.com/tf_peterson/readxl_import 
 
 # FOR RURAL MOBILE
-excel_path <- "UserTesting-Test_Metrics-4888412-RURAL-MOBILE-1SCHOOL-QA-EDITED-2023-11-09-085638.xlsx"
+excel_path <- "original-data-all/1school/UserTesting-Test_Metrics-4888412-RURAL-MOBILE-1SCHOOL-QA-EDITED-2024-01-08-142937.xlsx"
 file_name = "RURAL-MOBILE-1SCHOOL-QA-2023-11.csv"
 # FOR RURAL DESKTOP
-# excel_path <- "UserTesting-Test_Metrics-4888007-RURAL-DESKTOP-1SCHOOL-QA-EDITE-2023-11-09-085708.xlsx"
+# excel_path <- "original-data-all/1school/UserTesting-Test_Metrics-4888007-RURAL-DESKTOP-1SCHOOL-QA-EDITE-2024-01-08-132621.xlsx"
 # file_name = "RURAL-DESKTOP-1SCHOOL-QA-2023-11.csv"
 # FOR BOTH RURALS
 remote_school_name = rep(list("Wenatchee High School"), 16)
 community_row_num = 34
 
 # FOR SUBURBAN MOBILE
-# excel_path <- "UserTesting-Test_Metrics-4888685-SUBURBAN-MOBILE-1SCHOOL-QA-EDI-2023-11-09-085658.xlsx"
+# excel_path <- "original-data-all/1school/UserTesting-Test_Metrics-4888685-SUBURBAN-MOBILE-1SCHOOL-QA-EDI-2024-01-08-143249.xlsx"
 # file_name = "SUBURBAN-MOBILE-1SCHOOL-QA-2023-11.csv"
 # FOR SUBURBAN DESKTOP
-# excel_path <- "UserTesting-Test_Metrics-4888681-SUBURBAN-DESKTOP-1SCHOOL-QA-ED-2023-11-09-085603.xlsx"
+# excel_path <- "original-data-all/1school/UserTesting-Test_Metrics-4888681-SUBURBAN-DESKTOP-1SCHOOL-QA-ED-2024-01-08-143232.xlsx"
 # file_name = "SUBURBAN-DESKTOP-1SCHOOL-QA-2023-11.csv"
 # FOR BOTH SUBURBANS
 # remote_school_name = rep(list("Kentwood High School"), 16)
 # community_row_num = 35
 
 # FOR URBAN MOBILE
-# excel_path <- "UserTesting-Test_Metrics-4888686-URBAN-MOBILE-1SCHOOL-QA-EDITED-2023-11-12-124114.xlsx"
+# excel_path <- "original-data-all/1school/UserTesting-Test_Metrics-4888686-URBAN-MOBILE-1SCHOOL-QA-EDITED-2024-01-08-132555.xlsx"
 # file_name = "URBAN-MOBILE-1SCHOOL-QA-2023-11.csv"
 # FOR URBAN DESKTOP
-# excel_path <- "UserTesting-Test_Metrics-4888688-URBAN-DESKTOP-1SCHOOL-QA-EDITE-2023-11-12-124106.xlsx"
+# excel_path <- "original-data-all/1school/UserTesting-Test_Metrics-4888688-URBAN-DESKTOP-1SCHOOL-QA-EDITE-2024-01-08-132531.xlsx"
 # file_name = "URBAN-DESKTOP-1SCHOOL-QA-2023-11.csv"
 # FOR BOTH URBANS
 # remote_school_name = rep(list("Cleveland High School"), 16)
