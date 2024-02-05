@@ -168,24 +168,24 @@ main_clean_district_data <- function(excel_path, file_name, remote_school_name, 
 # NOW CLEAN ALL THAT DATA
 merging_df <- function() {
   # read in data
-  rural_mobile_district <- read_csv("cleaned-data/RURAL-MOBILE-DISTRICT-QA-2024-01.csv") %>% janitor::clean_names()
+  rural_mobile_district <- read_csv("cleaned-data-district/RURAL-MOBILE-DISTRICT-QA-2024-01.csv") %>% janitor::clean_names()
   colnames(rural_mobile_district) <- lapply(names(rural_mobile_district), function(x) substr(x, start = 1, stop = 32))
-  rural_desktop_district <- read_csv("cleaned-data/RURAL-DESKTOP-DISTRICT-QA-2024-01.csv")  %>% 
+  rural_desktop_district <- read_csv("cleaned-data-district/RURAL-DESKTOP-DISTRICT-QA-2024-01.csv")  %>% 
     mutate(`remote_attempts_how_many_searches_or_queries_did_you_make_before_you_found_the_correct_district_for_example_if_you_typed_in_nyps_and_couldnt_find_the_district_but_typed_new_york_public_schools_and_found_it_then_select_2`
            =as.character(`remote_attempts_how_many_searches_or_queries_did_you_make_before_you_found_the_correct_district_for_example_if_you_typed_in_nyps_and_couldnt_find_the_district_but_typed_new_york_public_schools_and_found_it_then_select_2`)) %>% 
     janitor::clean_names()
   colnames(rural_desktop_district) <- lapply(names(rural_desktop_district), function(x) substr(x, start = 1, stop = 32))
   rural_df <- bind_rows(rural_desktop_district, rural_mobile_district)
   
-  suburban_mobile_district <- read_csv("cleaned-data/SUBURBAN-MOBILE-DISTRICT-QA-2024-01.csv") %>% janitor::clean_names()
+  suburban_mobile_district <- read_csv("cleaned-data-district/SUBURBAN-MOBILE-DISTRICT-QA-2024-01.csv") %>% janitor::clean_names()
   colnames(suburban_mobile_district) <- lapply(names(suburban_mobile_district), function(x) substr(x, start = 1, stop = 32))
-  suburban_desktop_district <- read_csv("cleaned-data/SUBURBAN-DESKTOP-DISTRICT-QA-2024-01.csv") %>% janitor::clean_names()
+  suburban_desktop_district <- read_csv("cleaned-data-district/SUBURBAN-DESKTOP-DISTRICT-QA-2024-01.csv") %>% janitor::clean_names()
   colnames(suburban_desktop_district) <- lapply(names(suburban_desktop_district), function(x) substr(x, start = 1, stop = 32))
   suburban_df <- bind_rows(suburban_mobile_district, suburban_desktop_district)
   
-  urban_mobile_district <- read_csv("cleaned-data/URBAN-MOBILE-DISTRICT-QA-2024-01.csv") %>% janitor::clean_names()
+  urban_mobile_district <- read_csv("cleaned-data-district/URBAN-MOBILE-DISTRICT-QA-2024-01.csv") %>% janitor::clean_names()
   colnames(urban_mobile_district) <- lapply(names(urban_mobile_district), function(x) substr(x, start = 1, stop = 32))
-  urban_desktop_district <- read_csv("cleaned-data/URBAN-DESKTOP-DISTRICT-QA-2024-01.csv") %>% janitor::clean_names()
+  urban_desktop_district <- read_csv("cleaned-data-district/URBAN-DESKTOP-DISTRICT-QA-2024-01.csv") %>% janitor::clean_names()
   colnames(urban_desktop_district) <- lapply(names(urban_desktop_district), function(x) substr(x, start = 1, stop = 32))
   urban_df <- bind_rows(urban_mobile_district, urban_desktop_district)
   
@@ -269,42 +269,42 @@ quality_assurance <- function(df) {
 remote_school_name = rep(list("Wenatchee School District"), 16)
 community_row_num = 34
 # FOR RURAL MOBILE
-excel_path <- "original-data/district/UserTesting-Test_Metrics-4898561-RURAL-MOBILE-DISTRICT-ED-SEARC-2024-01-08-132203.xlsx"
-file_name = "cleaned-data/RURAL-MOBILE-DISTRICT-QA-2024-01.csv"
+excel_path <- "original-data-district/district/UserTesting-Test_Metrics-4898561-RURAL-MOBILE-DISTRICT-ED-SEARC-2024-01-08-132203.xlsx"
+file_name = "cleaned-data-district/RURAL-MOBILE-DISTRICT-QA-2024-01.csv"
 df <- main_clean_district_data(excel_path, file_name, remote_school_name, community_row_num)
 # FOR RURAL DESKTOP
-excel_path <- "original-data/district/UserTesting-Test_Metrics-4895729-RURAL-DESKTOP-DISTRICT-ED-SEAR-2024-01-08-132148.xlsx"
-file_name = "cleaned-data/RURAL-DESKTOP-DISTRICT-QA-2024-01.csv"
+excel_path <- "original-data-district/district/UserTesting-Test_Metrics-4895729-RURAL-DESKTOP-DISTRICT-ED-SEAR-2024-01-08-132148.xlsx"
+file_name = "cleaned-data-district/RURAL-DESKTOP-DISTRICT-QA-2024-01.csv"
 df <- main_clean_district_data(excel_path, file_name, remote_school_name, community_row_num)
 
 # FOR BOTH SUBURBANS
 remote_school_name = rep(list("Kent School District"), 16)
 community_row_num = 35
 # FOR SUBURBAN MOBILE
-excel_path <- "original-data/district/UserTesting-Test_Metrics-4958971-SUBURBAN-MOBILE-DISTRICT-ED-SE-2024-01-08-145340.xlsx"
-file_name = "cleaned-data/SUBURBAN-MOBILE-DISTRICT-QA-2024-01.csv"
+excel_path <- "original-data-district/district/UserTesting-Test_Metrics-4958971-SUBURBAN-MOBILE-DISTRICT-ED-SE-2024-01-08-145340.xlsx"
+file_name = "cleaned-data-district/SUBURBAN-MOBILE-DISTRICT-QA-2024-01.csv"
 df <- main_clean_district_data(excel_path, file_name, remote_school_name, community_row_num)
 # FOR SUBURBAN DESKTOP
-excel_path <- "original-data/district/UserTesting-Test_Metrics-4958981-SUBURBAN-DESKTOP-DISTRICT-ED-S-2024-01-08-145448.xlsx"
-file_name = "cleaned-data/SUBURBAN-DESKTOP-DISTRICT-QA-2024-01.csv"
+excel_path <- "original-data-district/district/UserTesting-Test_Metrics-4958981-SUBURBAN-DESKTOP-DISTRICT-ED-S-2024-01-08-145448.xlsx"
+file_name = "cleaned-data-district/SUBURBAN-DESKTOP-DISTRICT-QA-2024-01.csv"
 df <- main_clean_district_data(excel_path, file_name, remote_school_name, community_row_num)
 
 # FOR BOTH URBANS
 remote_school_name = rep(list("Seattle Public Schools"), 16)
 community_row_num = 36
 # FOR URBAN MOBILE
-excel_path <- "original-data/district/UserTesting-Test_Metrics-4898560-URBAN-MOBILE-DISTRICT-ED-2024-01-08-131937.xlsx"
-file_name = "cleaned-data/URBAN-MOBILE-DISTRICT-QA-2024-01.csv"
+excel_path <- "original-data-district/district/UserTesting-Test_Metrics-4898560-URBAN-MOBILE-DISTRICT-ED-2024-01-08-131937.xlsx"
+file_name = "cleaned-data-district/URBAN-MOBILE-DISTRICT-QA-2024-01.csv"
 df <- main_clean_district_data(excel_path, file_name, remote_school_name, community_row_num)
 # FOR URBAN DESKTOP
-excel_path <- "original-data/district/UserTesting-Test_Metrics-4898559-URBAN-DESKTOP-DISTRICT-ED-2024-01-08-131819.xlsx"
-file_name = "cleaned-data/URBAN-DESKTOP-DISTRICT-QA-2024-01.csv"
+excel_path <- "original-data-district/district/UserTesting-Test_Metrics-4898559-URBAN-DESKTOP-DISTRICT-ED-2024-01-08-131819.xlsx"
+file_name = "cleaned-data-district/URBAN-DESKTOP-DISTRICT-QA-2024-01.csv"
 df <- main_clean_district_data(excel_path, file_name, remote_school_name, community_row_num)
 
 # NOW MERGE ALL SIX DF
 full_df <- merging_df()
 # AND DO LAST TIDY OF THEM
-df <- tidy_merged_df_and_save(full_df, "cleaned-data/no_unconfirmed-smartphones-combined-both-local-and-remote.csv")
+df <- tidy_merged_df_and_save(full_df, "cleaned-data-district/no_unconfirmed-smartphones-combined-both-local-and-remote.csv")
 #QUALITY ASSURANCE
 quality_assurance(df)
   
