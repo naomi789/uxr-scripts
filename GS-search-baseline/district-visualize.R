@@ -88,7 +88,7 @@ pie_chart <- function(df, bar_fill, title_graph, output_folder) {
 
 
 df <- read.csv("cleaned-data/no_unconfirmed-smartphones-combined-both-local-and-remote.csv")
-output_folder_name = "district-visualizations"
+output_folder_name = "visualizations-district"
 
 # stacked bar graph UX and COMMUNITY
 bar_x = "how_would_you_describe_th"
