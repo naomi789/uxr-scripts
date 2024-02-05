@@ -3,6 +3,12 @@
 library(readxl)
 # install.packages("janitor")
 library(janitor)
+library(readr)
+library(tidyverse)
+library(ggplot2)
+library(likert) 
+library(assertthat)
+
 
 main_clean_district_data <- function(excel_path, file_name, remote_school_name, community_row_num) {
   # grabbing info from file
@@ -159,6 +165,102 @@ main_clean_district_data <- function(excel_path, file_name, remote_school_name, 
   return(df)
 }
 
+# NOW CLEAN ALL THAT DATA
+merging_df <- function() {
+  # read in data
+  rural_mobile_district <- read_csv("cleaned-data/RURAL-MOBILE-DISTRICT-QA-2024-01.csv") %>% janitor::clean_names()
+  colnames(rural_mobile_district) <- lapply(names(rural_mobile_district), function(x) substr(x, start = 1, stop = 32))
+  rural_desktop_district <- read_csv("cleaned-data/RURAL-DESKTOP-DISTRICT-QA-2024-01.csv")  %>% 
+    mutate(`remote_attempts_how_many_searches_or_queries_did_you_make_before_you_found_the_correct_district_for_example_if_you_typed_in_nyps_and_couldnt_find_the_district_but_typed_new_york_public_schools_and_found_it_then_select_2`
+           =as.character(`remote_attempts_how_many_searches_or_queries_did_you_make_before_you_found_the_correct_district_for_example_if_you_typed_in_nyps_and_couldnt_find_the_district_but_typed_new_york_public_schools_and_found_it_then_select_2`)) %>% 
+    janitor::clean_names()
+  colnames(rural_desktop_district) <- lapply(names(rural_desktop_district), function(x) substr(x, start = 1, stop = 32))
+  rural_df <- bind_rows(rural_desktop_district, rural_mobile_district)
+  
+  suburban_mobile_district <- read_csv("cleaned-data/SUBURBAN-MOBILE-DISTRICT-QA-2024-01.csv") %>% janitor::clean_names()
+  colnames(suburban_mobile_district) <- lapply(names(suburban_mobile_district), function(x) substr(x, start = 1, stop = 32))
+  suburban_desktop_district <- read_csv("cleaned-data/SUBURBAN-DESKTOP-DISTRICT-QA-2024-01.csv") %>% janitor::clean_names()
+  colnames(suburban_desktop_district) <- lapply(names(suburban_desktop_district), function(x) substr(x, start = 1, stop = 32))
+  suburban_df <- bind_rows(suburban_mobile_district, suburban_desktop_district)
+  
+  urban_mobile_district <- read_csv("cleaned-data/URBAN-MOBILE-DISTRICT-QA-2024-01.csv") %>% janitor::clean_names()
+  colnames(urban_mobile_district) <- lapply(names(urban_mobile_district), function(x) substr(x, start = 1, stop = 32))
+  urban_desktop_district <- read_csv("cleaned-data/URBAN-DESKTOP-DISTRICT-QA-2024-01.csv") %>% janitor::clean_names()
+  colnames(urban_desktop_district) <- lapply(names(urban_desktop_district), function(x) substr(x, start = 1, stop = 32))
+  urban_df <- bind_rows(urban_mobile_district, urban_desktop_district)
+  
+  # combine them into one big df
+  full_df <- bind_rows(suburban_df, urban_df, rural_df)
+}
+
+tidy_merged_df_and_save <- function(full_df) {
+  # DO NOT USE - this is the syntax to remove NA
+  # full_df <- full_df[!is.na(full_df$username),]
+  
+  # to stack the remote and local questions
+  # find remote ones
+  local_df <- full_df %>% select(-contains("remote_"))
+  # note which answers were for local schools
+  local_df$search_type <- "local"
+  # write.csv(local_df, "local_df.csv")
+  # next, get all the remote columns (in this case, last 11) AND the columns with participant data (first 11)
+  remote_df <- full_df[c(1:11, 24:34)]
+  remote_df$search_type <- "remote"
+  # write.csv(remote_df, "remote_df.csv")
+  
+  # if column name contains "remote_*" then rename it to "*"
+  remote_df <- remote_df %>%
+    rename_with(~ sub("^remote_", "", .), starts_with("remote_"))
+  colnames(remote_df) <- lapply(names(remote_df), function(x) substr(x, start = 1, stop = 25))
+  
+  
+  # then shorten all local_df colnames to be the same length
+  colnames(local_df) <- lapply(names(local_df), function(x) substr(x, start = 1, stop = 25))
+  # write.csv(local_df, "local_df_but_shorter_names.csv")
+  
+  # make sure all columns are char not double
+  local_df <- local_df %>% mutate(ease_how_easily_were_you_ = as.character(ease_how_easily_were_you_))
+  local_df <- local_df %>% mutate(loading_how_satisfied_wer = as.character(loading_how_satisfied_wer))
+  remote_df <- remote_df %>% mutate(ease_how_easily_were_you_ = as.character(ease_how_easily_were_you_))
+  remote_df <- remote_df %>% mutate(loading_how_satisfied_wer = as.character(loading_how_satisfied_wer))
+  
+  
+  # then combine the two into one df
+  df <- bind_rows(local_df, remote_df)
+  
+  # last fix??? 
+  # if the "device" is "Smartphone (unconfirmed)" then rename it to "Smartphone"
+  df <- df %>% mutate(device = ifelse(device == "Smartphone (unconfirmed)", "Smartphone", device))
+  
+  # and save it
+  write.csv(df, "cleaned-data/no_unconfirmed-smartphones-combined-both-local-and-remote.csv")
+  
+  return(df)
+}
+
+quality_assurance <- function(df) {
+  # should be 15*6 unique completed tests. Ideally that many unique usernames, too. 
+  assert_that(length(unique(df$test_id_number)) == 90, msg = "ERROR: wrong number of completed tests\n\n\n\n\n")
+  assert_that(length(unique(df$username)) == 90, msg = "ERROR: wrong number of unique participant usernames\n\n\n\n\n")
+  
+  # should be 15*6*2 rows of data
+  assert_that(nrow(df) == 180, msg = "ERROR: wrong number of rows")
+  
+  # should be 50/50 "device"="Smartphone" and "device"="Computer"
+  assert_that(sum(df$device == "Smartphone") == 90, sum(df$device == "Computer") == 90, msg = "ERROR: wrong number of device(s)")
+  
+  # should be exactly 33/33/33 "how_would_you_describe_th"=["Urban", Suburban", "Rural"]
+  assert_that(sum(df$how_would_you_describe_th == "Urban") == 60, msg = "ERROR: wrong number of urban")
+  assert_that(sum(df$how_would_you_describe_th == "Suburban") == 60, msg = "ERROR: wrong number of suburban")
+  assert_that(sum(df$how_would_you_describe_th == "Rural") == 60, msg = "ERROR: wrong number of rural")
+  
+  # at least 33% should be not NA "has_elementary_schoolers"; "has_middle_schoolers"; "has_high_schoolers"
+  assert_that(sum(!is.na(df$has_elementary_schoolers)) >= 60, msg = "ERROR: wrong number of ES")
+  assert_that(sum(!is.na(df$has_middle_schoolers)) >= 60, msg = "ERROR: wrong number of MS")
+  assert_that(sum(!is.na(df$has_high_schoolers)) >= 60, msg = "ERROR: wrong number of HS")
+}
+
+
 # MAIN: calling the function
 # how to read multiple xlsx worksheets within one file
 # https://rpubs.com/tf_peterson/readxl_import 
@@ -199,4 +301,11 @@ excel_path <- "original-data/district/UserTesting-Test_Metrics-4898559-URBAN-DES
 file_name = "cleaned-data/URBAN-DESKTOP-DISTRICT-QA-2024-01.csv"
 df <- main_clean_district_data(excel_path, file_name, remote_school_name, community_row_num)
 
+# NOW MERGE ALL SIX DF
+full_df <- merging_df()
+# AND DO LAST TIDY OF THEM
+df <- tidy_merged_df_and_save(full_df)
+#QUALITY ASSURANCE
+quality_assurance(df)
+  
 
