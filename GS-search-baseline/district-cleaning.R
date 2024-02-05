@@ -1,3 +1,4 @@
+# setwd("~/Documents/uxr-scripts/GS-search-baseline")
 # install.packages("readxl")
 library(readxl)
 # install.packages("janitor")
@@ -197,4 +198,5 @@ df <- main_clean_district_data(excel_path, file_name, remote_school_name, commun
 excel_path <- "original-data/district/UserTesting-Test_Metrics-4898559-URBAN-DESKTOP-DISTRICT-ED-2024-01-08-131819.xlsx"
 file_name = "cleaned-data/URBAN-DESKTOP-DISTRICT-QA-2024-01.csv"
 df <- main_clean_district_data(excel_path, file_name, remote_school_name, community_row_num)
+
 
