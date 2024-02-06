@@ -9,7 +9,8 @@ compare_histogram <- function(df, bar_x, comparing_on, title_graph, width, outpu
   
   p <- ggplot(summary_df, aes(x = !!as.symbol(bar_x), fill = !!as.symbol(comparing_on))) +
     geom_histogram(binwidth = width, position = "dodge") +
-    labs(title = title_graph,
+    labs(
+      # title = title_graph,
          x = bar_x,
          y = "Count",
          fill = comparing_on) +
@@ -28,7 +29,8 @@ string_bar <- function(df, bar_x, comparing_on, title_graph, output_folder_name)
   
   p <- ggplot(summary_df, aes(x = !!as.symbol(bar_x), fill = !!as.symbol(comparing_on), y = Count)) +
     geom_bar(stat = "identity", position = "dodge") +
-    labs(title = title_graph,
+    labs(
+      # title = title_graph,
          x = bar_x,
          y = "Count",
          fill = comparing_on) +
@@ -53,7 +55,8 @@ stacked_bar <- function(df, bar_x, bar_fill, title_graph, output_folder_name) {
   
   p <- ggplot(summary_df, aes(x = !!as.symbol(bar_x), y = Count, fill = !!as.symbol(bar_fill))) +
     geom_bar(stat = "identity") +
-    labs(title = title_graph,
+    labs(
+      # title = title_graph,
          x = bar_x,
          y = "Count",
          fill = bar_fill) +
@@ -75,7 +78,8 @@ pie_chart <- function(df, bar_fill, title_graph, output_folder_name) {
   p <- ggplot(summary_df, aes(x = "", y = Percentage, fill = !!as.symbol(bar_fill))) +
     geom_bar(stat = "identity", width = 1) +
     coord_polar("y") +
-    labs(title = title_graph,
+    labs(
+      # title = title_graph,
          fill = bar_fill) +
     theme_minimal() +
     theme(legend.position = "bottom")
@@ -123,6 +127,12 @@ comparing_on = "device"
 title_graph = "page-unique-count-compared-between-device-types"
 compare_histogram(df, bar_x, comparing_on, title_graph, 3, output_folder_name)
 
+# pie chart of UX
+bar_fill = "ux_did_you_encounter_any_"
+title_graph = "ux-issues-as-pie-chart"
+p <- pie_chart(df, bar_fill, title_graph, output_folder_name)
+p
+
 # stacked bar graph UX and COMMUNITY
 bar_x = "how_would_you_describe_th"
 bar_fill = "ux_did_you_encounter_any_"
@@ -142,6 +152,12 @@ bar_x = "search_type"
 bar_fill = "ux_did_you_encounter_any_"
 title_graph = "ux-issues-compared-between-search-types"
 p <- stacked_bar(df, bar_x, bar_fill, title_graph, output_folder_name) 
+p
+
+# pie chart of EASE
+bar_fill = "ease_how_easily_were_you_"
+title_graph = "ease-as-pie-chart"
+p <- pie_chart(df, bar_fill, title_graph, output_folder_name)
 p
 
 # stacked bar graph EASE and COMMUNITY
@@ -165,6 +181,12 @@ title_graph = "ease-compared-between-search-type"
 p <- stacked_bar(df, bar_x, bar_fill, title_graph, output_folder_name) 
 p
 
+# pie chart of ATTEMPTS
+bar_fill = "attempts_how_many_searche"
+title_graph = "attempts-as-pie-chart"
+p <- pie_chart(df, bar_fill, title_graph, output_folder_name)
+p
+
 # stacked bar graph ATTEMPTS and COMMUNITY
 bar_x = "how_would_you_describe_th"
 bar_fill = "attempts_how_many_searche"
@@ -184,6 +206,12 @@ bar_x = "search_type"
 bar_fill = "attempts_how_many_searche"
 title_graph = "attempt-count-compared-between-search-types"
 p <- stacked_bar(df, bar_x, bar_fill, title_graph, output_folder_name) 
+p
+
+# pie chart of SUCCESS
+bar_fill = "success_how_confident_are"
+title_graph = "success-as-pie-chart"
+p <- pie_chart(df, bar_fill, title_graph, output_folder_name)
 p
 
 # stacked bar graph SUCCESS and COMMUNITY
@@ -207,6 +235,11 @@ title_graph = "success-binary-compared-between-search-types"
 p <- stacked_bar(df, bar_x, bar_fill, title_graph, output_folder_name) 
 p
 
+# pie chart of LOCATION
+bar_fill = "if_you_set_the_location_f"
+title_graph = "location-as-pie-chart"
+p <- pie_chart(df, bar_fill, title_graph, output_folder_name)
+p
 
 # string graph LOCATION / COMMUNITY
 bar_x = "if_you_set_the_location_f"
