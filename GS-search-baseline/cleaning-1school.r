@@ -6,6 +6,25 @@ library(janitor)
 # how to read multiple xlsx worksheets within one file
 # https://rpubs.com/tf_peterson/readxl_import 
 
+hotfix_naming_issue_in_ease <- function(df) {
+  # yes it sucks this much, UserTesting had "very easily" as 1/5 
+  df <- df %>%
+    mutate(ease_how_easily_were_you_ = case_when(
+      ease_how_easily_were_you_ == "Very easily" ~ "5 - Very easily", 
+      ease_how_easily_were_you_ == "Somewhat easily" ~ "4 - Somewhat easily",
+      ease_how_easily_were_you_ == "Neutral" ~ "3 - Neutral",
+      ease_how_easily_were_you_ == "Somewhat difficult" ~ "2 - Somewhat difficult",
+      ease_how_easily_were_you_ == "Very difficult" ~ "1 - Very difficult",
+      ease_how_easily_were_you_ == "5" ~ "1 - Very difficult", 
+      ease_how_easily_were_you_ == "4" ~ "2 - Somewhat difficult",
+      ease_how_easily_were_you_ == "3" ~ "3 - Neutral",
+      ease_how_easily_were_you_ == "2" ~ "4 - Somewhat easily",
+      ease_how_easily_were_you_ == "1" ~ "5 - Very easily",
+      ease_how_easily_were_you_ == "NA" ~ "NA - I was not able to find it"
+    ))
+  
+}
+
 main_clean_1school_data <- function(excel_path, file_name, remote_school_name, community_row_num) {
   # grabbing info from file
   details <- read_excel(path = excel_path, sheet = "Session details")
@@ -235,14 +254,14 @@ tidy_merged_df_and_save <- function(full_df, final_file_name) {
   # then combine the two columns into one df
   df <- bind_rows(local_df, remote_df)
   
-  # last fix??? 
+  #HOTFIXES
+  df <- hotfix_naming_issue_in_ease(df)
+  
   # if the "device" is "Smartphone (unconfirmed)" then rename it to "Smartphone"
   df <- df %>% mutate(device = ifelse(device == "Smartphone (unconfirmed)", "Smartphone", device))
   
   # and save it
   write.csv(df, final_file_name)
-  
-  retur
 }
 
 quality_assurance <- function(df) {
