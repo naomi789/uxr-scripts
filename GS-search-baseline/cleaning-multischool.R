@@ -159,6 +159,8 @@ main_clean_multischool_data <- function(excel_path, file_name, remote_school_nam
   df <- df %>% row_to_names(row_number = 1)
   
   write.csv(df, file_name, row.names=FALSE)
+  
+  return(df)
 } 
 
 merging_df <- function() {
@@ -274,36 +276,36 @@ community_row_num = 31
 # FOR RURAL MOBILE
 excel_path <- "original-data-all/multischool/UserTesting-Test_Metrics-4961966-RURAL-MOBILE-MULTISCHOOL-ED-2024-02-05-144118.xlsx"
 file_name = "cleaned-data-multischool/RURAL-MOBILE-MULTISCHOOL-QA-2024-02.csv"
-main_clean_multischool_data(excel_path, file_name, remote_school_name, community_row_num)
+df <- main_clean_multischool_data(excel_path, file_name, remote_school_name, community_row_num)
 # FOR RURAL DESKTOP
 excel_path <- "original-data-all/multischool/UserTesting-Test_Metrics-4960616-RURAL-DESKTOP-MULTISCHOOL-ED-2024-02-05-144137.xlsx"
 file_name = "cleaned-data-multischool/RURAL-DESKTOP-MULTISCHOOL-QA-2024-02.csv"
-main_clean_multischool_data(excel_path, file_name, remote_school_name, community_row_num)
+df <- main_clean_multischool_data(excel_path, file_name, remote_school_name, community_row_num)
 
 
 # FOR BOTH SUBURBANS
 remote_school_name = rep(list("K-12 around Kent, WA"), 16)
-community_row_num = 35
+community_row_num = 32
 # FOR SUBURBAN MOBILE
 excel_path <- "original-data-all/multischool/UserTesting-Test_Metrics-4994476-SUBURBAN-MOBILE-MULTISCHOOL-ED-2024-02-06-091705.xlsx"
 file_name = "cleaned-data-multischool/SUBURBAN-MOBILE-MULTISCHOOL-QA-2024-02.csv"
-main_clean_multischool_data(excel_path, file_name, remote_school_name, community_row_num)
+df <- main_clean_multischool_data(excel_path, file_name, remote_school_name, community_row_num)
 # FOR SUBURBAN DESKTOP
 excel_path <- "original-data-all/multischool/UserTesting-Test_Metrics-4994482-SUBURBAN-DESKTOP-MULTISCHOOL-E-2024-02-06-092028.xlsx"
 file_name = "cleaned-data-multischool/SUBURBAN-DESKTOP-MULTISCHOOL-QA-2024-02.csv"
-main_clean_multischool_data(excel_path, file_name, remote_school_name, community_row_num)
+df <- main_clean_multischool_data(excel_path, file_name, remote_school_name, community_row_num)
 
 # FOR BOTH URBANS
 remote_school_name = rep(list("K-12 around Seattle, WA"), 16)
-community_row_num = 36
+community_row_num = 33
 # FOR URBAN MOBILE
 excel_path <- "original-data-all/multischool/UserTesting-Test_Metrics-4961968-URBAN-MOBILE-MULTISCHOOL-ED-2024-02-05-144311.xlsx"
 file_name = "cleaned-data-multischool/URBAN-MOBILE-MULTISCHOOL-QA-2024-02.csv"
-main_clean_multischool_data(excel_path, file_name, remote_school_name, community_row_num)
+df <- main_clean_multischool_data(excel_path, file_name, remote_school_name, community_row_num)
 # FOR URBAN DESKTOP
 excel_path <- "original-data-all/multischool/UserTesting-Test_Metrics-4961976-URBAN-DESKTOP-MULTISCHOOL-ED-2024-02-05-144245.xlsx"
 file_name = "cleaned-data-multischool/URBAN-DESKTOP-MULTISCHOOL-QA-2024-02.csv"
-main_clean_multischool_data(excel_path, file_name, remote_school_name, community_row_num)
+df <- main_clean_multischool_data(excel_path, file_name, remote_school_name, community_row_num)
 
 # NOW MERGE ALL SIX DF
 full_df <- merging_df()
