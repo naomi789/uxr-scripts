@@ -94,103 +94,17 @@ pie_chart <- function(df, bar_fill, title_graph, output_folder_name) {
 df <- read.csv("cleaned-data-multischool/multischool_no_unconfirmed-smartphones-combined-local-remote.csv")
 output_folder_name = "visualizations-multischool"
 
-# NUMERIC
-# time, clicks, pages, unique_pages
-# TIME ON TASK (IN SECONDS)
-# hist(df$`time_on_task_seconds`)
-bar_x = "time_on_task_seconds"
-comparing_on = "device"
-title_graph = "time-on-task-compared-between-device-types"
-p <- compare_histogram(df, bar_x, comparing_on, title_graph, 20, output_folder_name)
-p 
-
-# NUM CLICKS
-# hist(df$`clicks`)
-bar_x = "clicks"
-comparing_on = "device"
-title_graph = "click-count-compared-between-device-types"
-p <- compare_histogram(df, bar_x, comparing_on, title_graph, 5, output_folder_name)
-p 
-
-# NUM PAGES
-# hist(df$`pages`)
-bar_x = "pages"
-comparing_on = "device"
-title_graph = "page-count-compared-between-device-types"
-p <- compare_histogram(df, bar_x, comparing_on, title_graph, 3, output_folder_name)
-p 
-
-# NUM UNIQUE PAGES
-# hist(df$`unique_pages`)
-bar_x = "unique_pages"
-comparing_on = "device"
-title_graph = "page-unique-count-compared-between-device-types"
-compare_histogram(df, bar_x, comparing_on, title_graph, 3, output_folder_name)
-
-# pie chart of UX
-bar_fill = "ux_did_you_encounter_any_"
-title_graph = "ux-issues-as-pie-chart"
-p <- pie_chart(df, bar_fill, title_graph, output_folder_name)
-p
-
-# stacked bar graph UX and COMMUNITY
-bar_x = "how_would_you_describe_th"
-bar_fill = "ux_did_you_encounter_any_"
-title_graph = "ux-issues-compared-between-community-types"
-p <- stacked_bar(df, bar_x, bar_fill, title_graph, output_folder_name) 
-p
-
-# stacked bar graph UX and DEVICE
-bar_x = "device"
-bar_fill = "ux_did_you_encounter_any_"
-title_graph = "ux-issues-compared-between-device-types"
-p <- stacked_bar(df, bar_x, bar_fill, title_graph, output_folder_name) 
-p
-
-# stacked bar graph UX and SEARCHTYPE
-bar_x = "search_type"
-bar_fill = "ux_did_you_encounter_any_"
-title_graph = "ux-issues-compared-between-search-types"
-p <- stacked_bar(df, bar_x, bar_fill, title_graph, output_folder_name) 
-p
-
-# pie chart of EASE
-bar_fill = "ease_how_easily_were_you_"
-title_graph = "ease-as-pie-chart"
-p <- pie_chart(df, bar_fill, title_graph, output_folder_name)
-p
-
-# stacked bar graph EASE and COMMUNITY
-bar_x = "how_would_you_describe_th"
-bar_fill = "ease_how_easily_were_you_"
-title_graph = "ease-compared-between-community-types"
-p <- stacked_bar(df, bar_x, bar_fill, title_graph, output_folder_name) 
-p
-
-# stacked bar graph EASE and DEVICE
-bar_x = "device"
-bar_fill = "ease_how_easily_were_you_"
-title_graph = "ease-compared-between-device-types"
-p <- stacked_bar(df, bar_x, bar_fill, title_graph, output_folder_name) 
-p
-
-# stacked bar graph EASE and SEARCHTYPE
-bar_x = "search_type"
-bar_fill = "ease_how_easily_were_you_"
-title_graph = "ease-compared-between-search-type"
-p <- stacked_bar(df, bar_x, bar_fill, title_graph, output_folder_name) 
-p
-
+# PART 1 of 5: ATTEMPTS
 # pie chart of ATTEMPTS
 bar_fill = "attempts_how_many_searche"
 title_graph = "attempts-as-pie-chart"
 p <- pie_chart(df, bar_fill, title_graph, output_folder_name)
 p
 
-# stacked bar graph ATTEMPTS and COMMUNITY
-bar_x = "how_would_you_describe_th"
+# stacked bar graph ATTEMPTS and SEARCHTYPE
+bar_x = "search_type"
 bar_fill = "attempts_how_many_searche"
-title_graph = "attempt-count-compared-between-community-types"
+title_graph = "attempt-count-compared-between-search-types"
 p <- stacked_bar(df, bar_x, bar_fill, title_graph, output_folder_name) 
 p
 
@@ -201,23 +115,83 @@ title_graph = "attempt-count-compared-between-device-types"
 p <- stacked_bar(df, bar_x, bar_fill, title_graph, output_folder_name) 
 p
 
-# stacked bar graph ATTEMPTS and SEARCHTYPE
-bar_x = "search_type"
+# stacked bar graph ATTEMPTS and COMMUNITY
+bar_x = "how_would_you_describe_th"
 bar_fill = "attempts_how_many_searche"
-title_graph = "attempt-count-compared-between-search-types"
+title_graph = "attempt-count-compared-between-community-types"
 p <- stacked_bar(df, bar_x, bar_fill, title_graph, output_folder_name) 
 p
 
+# PART 2 of 5: EASE
+# pie chart of EASE
+bar_fill = "ease_how_easily_were_you_"
+title_graph = "ease-as-pie-chart"
+p <- pie_chart(df, bar_fill, title_graph, output_folder_name)
+p
+
+# stacked bar graph EASE and SEARCHTYPE
+bar_x = "search_type"
+bar_fill = "ease_how_easily_were_you_"
+title_graph = "ease-compared-between-search-type"
+p <- stacked_bar(df, bar_x, bar_fill, title_graph, output_folder_name) 
+p
+
+# stacked bar graph EASE and DEVICE
+bar_x = "device"
+bar_fill = "ease_how_easily_were_you_"
+title_graph = "ease-compared-between-device-types"
+p <- stacked_bar(df, bar_x, bar_fill, title_graph, output_folder_name) 
+p
+
+# stacked bar graph EASE and COMMUNITY
+bar_x = "how_would_you_describe_th"
+bar_fill = "ease_how_easily_were_you_"
+title_graph = "ease-compared-between-community-types"
+p <- stacked_bar(df, bar_x, bar_fill, title_graph, output_folder_name) 
+p
+
+# PART 3 of 5: UX ISSUES
+# USABILITY ISSUES
+# pie chart of UX
+bar_fill = "ux_did_you_encounter_any_"
+title_graph = "ux-issues-as-pie-chart"
+p <- pie_chart(df, bar_fill, title_graph, output_folder_name)
+p
+
+# stacked bar graph UX and SEARCHTYPE
+bar_x = "search_type"
+bar_fill = "ux_did_you_encounter_any_"
+title_graph = "ux-issues-compared-between-search-types"
+p <- stacked_bar(df, bar_x, bar_fill, title_graph, output_folder_name) 
+p
+
+# stacked bar graph UX and DEVICE
+bar_x = "device"
+bar_fill = "ux_did_you_encounter_any_"
+title_graph = "ux-issues-compared-between-device-types"
+p <- stacked_bar(df, bar_x, bar_fill, title_graph, output_folder_name) 
+p
+
+# stacked bar graph UX and COMMUNITY
+bar_x = "how_would_you_describe_th"
+bar_fill = "ux_did_you_encounter_any_"
+title_graph = "ux-issues-compared-between-community-types"
+p <- stacked_bar(df, bar_x, bar_fill, title_graph, output_folder_name) 
+p
+
+
+# PART 4 of 5: LOCATION IN SEARCH BAR (SELF-REPORTED)
+# SELF REPORTED LOCATION (IN SEARCH BAR)
 # pie chart of LOCATION
 bar_fill = "if_you_set_the_location_f"
 title_graph = "location-as-pie-chart"
 p <- pie_chart(df, bar_fill, title_graph, output_folder_name)
 p
 
-# string graph LOCATION / COMMUNITY
+# graph LOCATION / SEARCHTYPE
 bar_x = "if_you_set_the_location_f"
-comparing_on = "how_would_you_describe_th"
-title_graph = "initial-location-compared-between-community-type"
+comparing_on = "search_type"
+title_graph = "initial-location-compared-between-search-type"
 p <- string_bar(df, bar_x, comparing_on, title_graph, output_folder_name)
 p
 
@@ -228,12 +202,41 @@ title_graph = "initial-location-compared-between-device-type"
 p <- string_bar(df, bar_x, comparing_on, title_graph, output_folder_name)
 p
 
-# graph LOCATION / SEARCHTYPE
+# string graph LOCATION / COMMUNITY
 bar_x = "if_you_set_the_location_f"
-comparing_on = "search_type"
-title_graph = "initial-location-compared-between-search-type"
+comparing_on = "how_would_you_describe_th"
+title_graph = "initial-location-compared-between-community-type"
 p <- string_bar(df, bar_x, comparing_on, title_graph, output_folder_name)
 p
+
+# PART 5 of 5: PERCIEVED ACCURACY
+# pie chart of ACCURACY
+bar_fill = "accuracy_how_confident_ar"
+title_graph = "accuracy-as-pie-chart"
+p <- pie_chart(df, bar_fill, title_graph, output_folder_name)
+p
+
+# graph ACCURACY / SEARCHTYPE
+bar_fill = "accuracy_how_confident_ar"
+bar_x = "search_type"
+title_graph = "accuracy-compared-between-search-type"
+p <- stacked_bar(df, bar_x, bar_fill, title_graph, output_folder_name) 
+p
+
+# string graph ACCURACY / DEVICE
+bar_fill = "accuracy_how_confident_ar"
+bar_x = "device"
+title_graph = "accuracy-compared-between-device-type"
+p <- stacked_bar(df, bar_x, bar_fill, title_graph, output_folder_name) 
+p
+
+# string graph ACCURACY / COMMUNITY
+bar_fill = "accuracy_how_confident_ar"
+bar_x = "how_would_you_describe_th"
+title_graph = "accuracy-compared-between-community-type"
+p <- stacked_bar(df, bar_x, bar_fill, title_graph, output_folder_name) 
+p
+
 
 # pie chart locations
 bar_fill = "if_you_set_the_location_f"
