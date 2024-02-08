@@ -94,39 +94,7 @@ pie_chart <- function(df, bar_fill, title_graph, output_folder_name) {
 df <- read.csv("cleaned-data-1school/1school_no_unconfirmed-smartphones-combined-local-remote.csv")
 output_folder_name = "visualizations-1school"
 
-# NUMERIC
-# time, clicks, pages, unique_pages
-# TIME ON TASK (IN SECONDS)
-# hist(df$`time_on_task_seconds`)
-bar_x = "time_on_task_seconds"
-comparing_on = "device"
-title_graph = "time-on-task-compared-between-device-types"
-p <- compare_histogram(df, bar_x, comparing_on, title_graph, 20, output_folder_name)
-p 
-
-# NUM CLICKS
-# hist(df$`clicks`)
-bar_x = "clicks"
-comparing_on = "device"
-title_graph = "click-count-compared-between-device-types"
-p <- compare_histogram(df, bar_x, comparing_on, title_graph, 5, output_folder_name)
-p 
-
-# NUM PAGES
-# hist(df$`pages`)
-bar_x = "pages"
-comparing_on = "device"
-title_graph = "page-count-compared-between-device-types"
-p <- compare_histogram(df, bar_x, comparing_on, title_graph, 3, output_folder_name)
-p 
-
-# NUM UNIQUE PAGES
-# hist(df$`unique_pages`)
-bar_x = "unique_pages"
-comparing_on = "device"
-title_graph = "page-unique-count-compared-between-device-types"
-compare_histogram(df, bar_x, comparing_on, title_graph, 3, output_folder_name)
-
+# SKIPPING 
 # pie chart of UX
 bar_fill = "ux_did_you_encounter_any_"
 title_graph = "ux-issues-as-pie-chart"
