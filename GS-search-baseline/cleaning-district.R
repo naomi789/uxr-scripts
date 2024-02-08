@@ -204,7 +204,7 @@ tidy_merged_df_and_save <- function(full_df, final_file_name) {
   local_df$search_type <- "local"
   # write.csv(local_df, "local_df.csv")
   # next, get all the remote columns (in this case, last 11) AND the columns with participant data (first 11)
-  remote_df <- full_df[c(1:11, 24:34)]
+  remote_df <- full_df[c(1:11, 25:34)]
   remote_df$search_type <- "remote"
   # write.csv(remote_df, "remote_df.csv")
   
