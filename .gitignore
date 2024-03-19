@@ -5,6 +5,9 @@
 *.xlsx
 *.csv
 
+# ignore the pycharm files
+*.idea/
+
 # ignore macbook stuff
 *.DS_Store
 
