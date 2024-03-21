@@ -23,8 +23,8 @@ def main():
    for measurement in measurements:
        for option in aggregates:
            title = measurement + option
-           df_gender = df_original[df_original['StudentGroupType'] == option]
-           df = df_gender[df_gender['Measures'] == measurement]
+           df = df_original[df_original['StudentGroupType'] == option]
+           df = df[df['Measures'] == measurement]
            df_avg = df.groupby(['SchoolYear', 'StudentGroup'])['ValueMeasurement'].mean().reset_index()
            df_pivot = df_avg.pivot(index='SchoolYear', columns='StudentGroup', values='ValueMeasurement')
            aggregate_line_graph(df_pivot, x_axis, y_axis, title)
