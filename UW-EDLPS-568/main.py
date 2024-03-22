@@ -12,27 +12,29 @@ def main():
 
    # ignore subgroups of students
    df_aggregate = df_original[df_original['StudentGroupType'] == 'AllStudents']
-   per_school(df_aggregate)
-   state_avg(df_aggregate)
+   per_school(df_aggregate, 'GraphEachSchool/')
+   state_avg(df_aggregate, 'GraphStateAverage/')
 
    # visualize each subgroup
-   aggregates = ['Gender']
+   aggregates = ['Gender', 'FederalRaceEthnicity', 'EnglishLearner', 'Foster', 'HiCAP', 'Homeless',
+                 'Income', 'Migrant', 'MilitaryFamily', 'Section504', 'SWD']
    measurements = ['Ninth Grade on Track', 'Regular Attendance']
    x_axis = 'SchoolYear'
    y_axis = 'ValueMeasurement'
+   folder = 'ComparingSubgroupsOfStudents/'
    for measurement in measurements:
        for option in aggregates:
-           title = measurement + option
+           title = (option + measurement).replace(" ", "")
            df = df_original[df_original['StudentGroupType'] == option]
            df = df[df['Measures'] == measurement]
            df_avg = df.groupby(['SchoolYear', 'StudentGroup'])['ValueMeasurement'].mean().reset_index()
            df_pivot = df_avg.pivot(index='SchoolYear', columns='StudentGroup', values='ValueMeasurement')
-           aggregate_line_graph(df_pivot, x_axis, y_axis, title)
+           aggregate_line_graph(df_pivot, x_axis, y_axis, title, folder)
 
 
 
 
-def aggregate_line_graph(df, x_axis, y_axis, title):
+def aggregate_line_graph(df, x_axis, y_axis, title, folder):
     df.plot(marker='o')
     # Set plot labels and title
     plt.xlabel(x_axis)
@@ -41,7 +43,7 @@ def aggregate_line_graph(df, x_axis, y_axis, title):
     # Show the plot
     plt.legend()
     # plt.show()
-    title = title + '.png'
+    title = folder + title + '.png'
     plt.savefig(title)
 
 def clean_data():
@@ -65,7 +67,7 @@ def clean_data():
 
     return df
 
-def line_graph(df, x_axis, y_axis, line_name, title):
+def line_graph(df, x_axis, y_axis, line_name, title, folder):
     grouped_data = df.groupby(line_name)
     for name, group in grouped_data:
         plt.plot(group[x_axis], group[y_axis], label=name)
@@ -77,28 +79,28 @@ def line_graph(df, x_axis, y_axis, line_name, title):
     plt.title('{} vs {} ({})'.format(y_axis, x_axis, line_name))
     plt.legend()
 
-    title = title + '.png'
+    title = folder + title + '.png'
     plt.savefig(title)
 
 
-def basic_line_graph(df, x_axis, y_axis, title):
+def basic_line_graph(df, x_axis, y_axis, title, folder):
     plt.figure()
-    plt.plot(df[x_axis], df[y_axis]) #
+    plt.plot(df[x_axis], df[y_axis], label=y_axis) #
     plt.xlabel(x_axis)
     plt.ylabel(y_axis)
     plt.title('{} vs {} ({})'.format(y_axis, x_axis, title))
     plt.legend()
-    title = title + '.png'
+    title = folder + title + '.png'
     plt.savefig(title)
 
-def per_school(df):
+def per_school(df, folder):
     # 9TH GRADE ON-TRACK
     line_name = 'SchoolName'
     x_axis = 'SchoolYear'
     y_axis = 'ValueMeasurement'
     df_9 = df[df['Measures'] == 'Ninth Grade on Track']
     title = '9GradePerSchool'
-    line_graph(df_9, x_axis, y_axis, line_name, title)
+    line_graph(df_9, x_axis, y_axis, line_name, title, folder)
 
     # REGULAR ATTENDANCE
     line_name = 'SchoolName'
@@ -106,10 +108,10 @@ def per_school(df):
     y_axis = 'ValueMeasurement'
     df_attendance = df[df['Measures'] == 'Regular Attendance']
     title = 'RegAttendancePerSchool'
-    line_graph(df_attendance, x_axis, y_axis, line_name, title)
+    line_graph(df_attendance, x_axis, y_axis, line_name, title, folder)
 
 
-def state_avg(df):
+def state_avg(df, folder):
     # 9TH GRADE ON TRACK
     x_axis = 'SchoolYear'
     y_axis = 'AverageValueMeasurement'
@@ -117,7 +119,7 @@ def state_avg(df):
     df_9 = df[df['Measures'] == 'Ninth Grade on Track']
     average_value_measurement = df_9.groupby('SchoolYear')['ValueMeasurement'].mean()
     new_df = average_value_measurement.reset_index(name='AverageValueMeasurement')
-    basic_line_graph(new_df, x_axis, y_axis, title)
+    basic_line_graph(new_df, x_axis, y_axis, title, folder)
 
     # REGULAR ATTENDANCE
     x_axis = 'SchoolYear'
@@ -126,12 +128,13 @@ def state_avg(df):
     df_attendance = df[df['Measures'] == 'Regular Attendance']
     average_value_measurement = df_attendance.groupby('SchoolYear')['ValueMeasurement'].mean()
     new_df = average_value_measurement.reset_index(name='AverageValueMeasurement')
-    basic_line_graph(new_df, x_axis, y_axis, title)
+    basic_line_graph(new_df, x_axis, y_axis, title, folder)
 
 
 main()
 
 # TRASH
+# unique = df['StudentGroups'].unique()
 # unique_names = df['SchoolName'].unique()
 # print(unique_names)
 
@@ -149,6 +152,9 @@ main()
 #        'PercentTakingCTETechPrep', 'DataAsOf'],
 #       dtype='object')
 
+# df_original['StudentGroupType'].unique()
+# ['AllStudents' 'EnglishLearner' 'FederalRaceEthnicity' 'Foster' 'Gender'
+#  'HiCAP' 'Homeless' 'Income' 'Migrant' 'MilitaryFamily' 'Section504' 'SWD']
 
 # na_count_measures = df['Measures'].isna().sum()
 # print(na_count_measures)
