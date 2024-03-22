@@ -9,9 +9,13 @@ import matplotlib.pyplot as plt
 
 def main():
    df_original = clean_data()
+   df_state_level = df_original[df_original['OrganizationLevel'] == 'State']
+   df_district_level = df_original[df_original['OrganizationLevel'] == 'District']
+   df_school_level = cleaner(df_original)
+
 
    # ignore subgroups of students
-   df_aggregate = df_original[df_original['StudentGroupType'] == 'AllStudents']
+   df_aggregate = df_school_level[df_school_level['StudentGroupType'] == 'AllStudents']
    per_school(df_aggregate, 'GraphEachSchool/')
    state_avg(df_aggregate, 'GraphStateAverage/')
 
@@ -19,19 +23,22 @@ def main():
    aggregates = ['Gender', 'FederalRaceEthnicity', 'EnglishLearner', 'Foster', 'HiCAP', 'Homeless',
                  'Income', 'Migrant', 'MilitaryFamily', 'Section504', 'SWD']
    measurements = ['Ninth Grade on Track', 'Regular Attendance']
-   x_axis = 'SchoolYear'
-   y_axis = 'ValueMeasurement'
-   folder = 'ComparingSubgroupsOfStudents/'
-   for measurement in measurements:
-       for option in aggregates:
-           title = (option + measurement).replace(" ", "")
-           df = df_original[df_original['StudentGroupType'] == option]
-           df = df[df['Measures'] == measurement]
-           df_avg = df.groupby(['SchoolYear', 'StudentGroup'])['ValueMeasurement'].mean().reset_index()
-           df_pivot = df_avg.pivot(index='SchoolYear', columns='StudentGroup', values='ValueMeasurement')
-           aggregate_line_graph(df_pivot, x_axis, y_axis, title, folder)
+   per_group_of_students(measurements, aggregates, df_school_level)
 
 
+
+def per_group_of_students(measurements, aggregates, df):
+    x_axis = 'SchoolYear'
+    y_axis = 'ValueMeasurement'
+    folder = 'ComparingSubgroupsOfStudents/'
+    for measurement in measurements:
+        for option in aggregates:
+            title = (option + measurement).replace(" ", "")
+            df_option = df[df['StudentGroupType'] == option]
+            df_option = df_option[df_option['Measures'] == measurement]
+            df_with_avg = df_option.groupby(['SchoolYear', 'StudentGroup'])['ValueMeasurement'].mean().reset_index()
+            df_pivot = df_with_avg.pivot(index='SchoolYear', columns='StudentGroup', values='ValueMeasurement')
+            aggregate_line_graph(df_pivot, x_axis, y_axis, title, folder)
 
 
 def aggregate_line_graph(df, x_axis, y_axis, title, folder):
@@ -51,20 +58,24 @@ def clean_data():
     df = pd.read_csv(csv_file_path)
     # cast to int
     df['SchoolYear'] = df['SchoolYear'].str.split('-').str[1].astype(int) + 2000
+    # drop if 'Numerator' or 'Denominator' is NAN
+    df.dropna(subset=['Numerator'], inplace=True)
+    df.dropna(subset=['Denominator'], inplace=True)
+    # add new column
+    df.loc[:, 'ValueMeasurement'] = df['Numerator'] / df['Denominator']
+    return df
 
+def cleaner(df):
     # ignore subgroups by grade
     df = df[df['GradeLevel'] == 'All Grades']
     # only keep if row contains SchoolName
     df.dropna(subset=['SchoolName'], inplace=True)
+    # df.loc[df['SchoolName'].notnull(), :]  # Selecting rows where 'SchoolName' is not null
+    # df.dropna(subset=['SchoolName'], inplace=True)  # Dropping rows inplace
     # only keep if SchoolCode is not NAN
     df.dropna(subset=['SchoolCode'], inplace=True)
-    # drop if 'Numerator' or 'Denominator' is NAN
-    df.dropna(subset=['Numerator'], inplace=True)
-    df.dropna(subset=['Denominator'], inplace=True)
-
-    # add new column
-    df.loc[:, 'ValueMeasurement'] = df['Numerator'] / df['Denominator']
-
+    # df.loc[df['SchoolCode'].notnull(), :]  # Selecting rows where 'SchoolName' is not null
+    # df.dropna(subset=['SchoolCode'], inplace=True)  # Dropping rows inplace
     return df
 
 def line_graph(df, x_axis, y_axis, line_name, title, folder):
@@ -135,7 +146,7 @@ def state_avg(df, folder):
 main()
 
 # TRASH
-# unique = df['StudentGroups'].unique()
+# unique = df[''].unique()
 # unique_names = df['SchoolName'].unique()
 # print(unique_names)
 
