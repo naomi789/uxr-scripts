@@ -69,11 +69,12 @@ def clean_data():
 
 def line_graph(df, x_axis, y_axis, line_name, title, folder):
     grouped_data = df.groupby(line_name)
+    # make graph
+    plt.figure()
     for name, group in grouped_data:
         plt.plot(group[x_axis], group[y_axis], label=name)
 
     # Set labels and title
-    plt.figure()
     plt.xlabel(x_axis)
     plt.ylabel(y_axis)
     plt.title('{} vs {} ({})'.format(y_axis, x_axis, line_name))
