@@ -30,6 +30,22 @@ def main():
     visualize_district(df_king_county_only, measurements, 'DistrictName')
     df_public_districts = df_district_level[df_district_level[''] == '']
 
+def getTreatmentSchools():
+    file_name = 'NGS_Master_School_List.xlsx'
+    sheet_name = 'Full School List'
+    assumed_years = 'First year'
+    start_dates = 'When did they start in the network'
+    school_names = 'School name'
+    district_names = 'District name'
+    df = pd.read_excel(file_name, sheet_name=sheet_name, header=2)
+    df.dropna(subset=['School name', 'District name', 'When did they start in the network'], inplace=True)
+    selected_df = df[[assumed_years, start_dates, school_names, district_names]]
+    # selected_df['Year'] = np.where(selected_df[start_dates] == 'Current year', selected_df['First year'].str[:4],'NA')
+    selected_df.loc[:, 'Year'] = np.where(df[start_dates] == 'Current year', df[assumed_years].str[:4], 'NA')
+
+    print(selected_df[assumed_years])
+    return selected_df
+
 def visualize_district(df, measurements, line_name):
     x_axis = 'SchoolYear'
     y_axis = 'ValueMeasurement'
