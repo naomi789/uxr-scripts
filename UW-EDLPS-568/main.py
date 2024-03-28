@@ -8,28 +8,27 @@ import matplotlib.pyplot as plt
 
 
 def main():
-   df_original = clean_data()
-   # df_state_level = df_original[df_original['OrganizationLevel'] == 'State']
-   df_district_level = df_original[df_original['OrganizationLevel'] == 'District']
-   # df_school_level = cleaner(df_original)
+    df_original = clean_data()
+    df_state_level = df_original[df_original['OrganizationLevel'] == 'State']
+    df_district_level = df_original[df_original['OrganizationLevel'] == 'District']
+    df_school_level = cleaner(df_original)
 
+    # ignore subgroups of students
+    df_aggregate = df_school_level[df_school_level['StudentGroupType'] == 'AllStudents']
+    per_school(df_aggregate, 'GraphEachSchool/')
+    state_avg(df_aggregate, 'GraphStateAverage/')
 
-   # ignore subgroups of students
-   # df_aggregate = df_school_level[df_school_level['StudentGroupType'] == 'AllStudents']
-   # per_school(df_aggregate, 'GraphEachSchool/')
-   # state_avg(df_aggregate, 'GraphStateAverage/')
+    # visualize each subgroup
+    aggregates = ['Gender', 'FederalRaceEthnicity', 'EnglishLearner', 'Foster', 'HiCAP', 'Homeless',
+                  'Income', 'Migrant', 'MilitaryFamily', 'Section504', 'SWD']
+    measurements = ['Ninth Grade on Track', 'Regular Attendance']
+    per_group_of_students(measurements, aggregates, df_school_level)
 
-   # visualize each subgroup
-   aggregates = ['Gender', 'FederalRaceEthnicity', 'EnglishLearner', 'Foster', 'HiCAP', 'Homeless',
-                 'Income', 'Migrant', 'MilitaryFamily', 'Section504', 'SWD']
-   measurements = ['Ninth Grade on Track', 'Regular Attendance']
-   # per_group_of_students(measurements, aggregates, df_school_level)
-
-   # per district
-   df_district_level = df_district_level[df_district_level['StudentGroup'] == 'All Students']
-   df_king_county_only = df_district_level[df_district_level['County'] == 'King']
-   visualize_district(df_king_county_only, measurements, 'DistrictName')
-
+    # per district
+    df_district_level = df_district_level[df_district_level['StudentGroup'] == 'All Students']
+    df_king_county_only = df_district_level[df_district_level['County'] == 'King']
+    visualize_district(df_king_county_only, measurements, 'DistrictName')
+    df_public_districts = df_district_level[df_district_level[''] == '']
 
 def visualize_district(df, measurements, line_name):
     x_axis = 'SchoolYear'
@@ -40,8 +39,6 @@ def visualize_district(df, measurements, line_name):
         df_option = df[df['Measures'] == measurement]
         df_option = df_option[df_option['GradeLevel'] == 'All Grades']
         df_option = df_option[df_option['StudentGroupType'] == 'AllStudents']
-        # average_value_measurement = df_option.groupby('SchoolYear')['ValueMeasurement'].mean()
-        # new_df = average_value_measurement.reset_index(name='AverageValueMeasurement')
         line_graph(df_option, x_axis, y_axis, line_name, title, folder)
 
 
