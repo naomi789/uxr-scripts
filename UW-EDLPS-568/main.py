@@ -8,21 +8,48 @@ import matplotlib.pyplot as plt
 
 
 def main():
+    df_names_treatment = getTreatmentSchools()
     df_original = clean_data()
-    df_state_level = df_original[df_original['OrganizationLevel'] == 'State']
-    df_district_level = df_original[df_original['OrganizationLevel'] == 'District']
-    df_school_level = cleaner(df_original)
+    df_grade_9_only = df_original[df_original['GradeLevel'] == '9']
+    df_grade_9_only.dropna(subset=['SchoolName'], inplace=True)
+    df_treatment = getTreatmentData(df_names_treatment, df_grade_9_only)
 
+    # visualize each subgroup
+    measurements = ['Ninth Grade on Track', 'Regular Attendance']
+    # aggregates = ['Gender', 'FederalRaceEthnicity', 'EnglishLearner', 'Foster', 'HiCAP', 'Homeless',
+    #               'Income', 'Migrant', 'MilitaryFamily', 'Section504', 'SWD']
+    # folder = 'TreatmentSubgroupsOfStudents/'
+    # per_group_of_students(measurements, aggregates, df_treatment, folder)
+    # one graph per treatment group
+    graph_per_cohort(df_treatment, measurements)
+    print('done')
+
+
+def graph_per_cohort(df_treatment, measurements):
+    # Group the DataFrame by the 'Year' column
+    grouped = df_treatment.groupby('Year')
+
+    # Iterate over the groups and print each group
+    for year, group_df in grouped:
+        df = group_df[group_df['StudentGroupType'] == 'AllStudents']
+        state_avg(df, 'ByCohortGraphStateAverage/', year)
+
+def practice_rounds():
+    df_names_treatment = getTreatmentSchools()
+    df_original = clean_data()
+    # df_state_level = df_original[df_original['OrganizationLevel'] == 'State']
+    # df_district_level = df_original[df_original['OrganizationLevel'] == 'District']
+    df_school_level = cleaner(df_original)
     # ignore subgroups of students
     df_aggregate = df_school_level[df_school_level['StudentGroupType'] == 'AllStudents']
     per_school(df_aggregate, 'GraphEachSchool/')
-    state_avg(df_aggregate, 'GraphStateAverage/')
+    state_avg(df_aggregate, 'GraphStateAverage/', 'AllStudents')
 
     # visualize each subgroup
     aggregates = ['Gender', 'FederalRaceEthnicity', 'EnglishLearner', 'Foster', 'HiCAP', 'Homeless',
                   'Income', 'Migrant', 'MilitaryFamily', 'Section504', 'SWD']
     measurements = ['Ninth Grade on Track', 'Regular Attendance']
-    per_group_of_students(measurements, aggregates, df_school_level)
+    per_group_of_students(measurements, aggregates, df_school_level, 'ComparingSubgroupsOfStudents/')
 
     # per district
     df_district_level = df_district_level[df_district_level['StudentGroup'] == 'All Students']
@@ -30,6 +57,37 @@ def main():
     visualize_district(df_king_county_only, measurements, 'DistrictName')
     df_public_districts = df_district_level[df_district_level[''] == '']
 
+def getTreatmentSchools():
+    file_name = 'start_dates.csv'
+    return pd.read_csv(file_name, encoding='latin1')
+
+def getTreatmentData(df_names_treatment, df_grade_9_only):
+    # merged_df = pd.merge(df_grade_9_only, df_names_treatment, on='SchoolDistrict', how='inner')
+    # merged_df = merged_df.drop_duplicates(subset='SchoolName', keep='first')
+    # merged_df.to_csv('merged_df.csv', index=False)
+    # unique_treatment_names = list(df_names_treatment['SchoolName'].unique())
+    # unique_school_names = list(df_grade_9_only['SchoolName'].unique())
+    # unique_school_names.sort()
+    # unique_treatment_names.sort()
+    # # ['East Valley-Yakima', 'Eastmont Senior High', 'Sterling Junior High School']
+    # # 'East Valley High School'
+    # # 'Eastmont Junior High'
+    # found_match = list()
+    # no_match_found = list()
+    # needs_match = unique_treatment_names
+    # for name in unique_school_names:
+    #     if name in unique_treatment_names:
+    #         found_match.append(name)
+    #         needs_match.remove(name)
+    #     else:
+    #         no_match_found.append(name)
+    #
+    # found_match.sort()
+    # no_match_found.sort()
+    # needs_match.sort()
+    # return None
+    merged_df = pd.merge(df_names_treatment, df_grade_9_only, on=['SchoolName', 'DistrictName'])
+    return merged_df
 
 def visualize_district(df, measurements, line_name):
     x_axis = 'SchoolYear'
@@ -43,10 +101,9 @@ def visualize_district(df, measurements, line_name):
         line_graph(df_option, x_axis, y_axis, line_name, title, folder)
 
 
-def per_group_of_students(measurements, aggregates, df):
+def per_group_of_students(measurements, aggregates, df, folder):
     x_axis = 'SchoolYear'
     y_axis = 'ValueMeasurement'
-    folder = 'ComparingSubgroupsOfStudents/'
     for measurement in measurements:
         for option in aggregates:
             title = (option + measurement).replace(" ", "")
@@ -139,11 +196,11 @@ def per_school(df, folder):
     line_graph(df_attendance, x_axis, y_axis, line_name, title, folder)
 
 
-def state_avg(df, folder):
+def state_avg(df, folder, group_by):
     # 9TH GRADE ON TRACK
     x_axis = 'SchoolYear'
     y_axis = 'AverageValueMeasurement'
-    title = '9GradeAverage'
+    title = f'{group_by}-9GradeAverage'
     df_9 = df[df['Measures'] == 'Ninth Grade on Track']
     average_value_measurement = df_9.groupby('SchoolYear')['ValueMeasurement'].mean()
     new_df = average_value_measurement.reset_index(name='AverageValueMeasurement')
