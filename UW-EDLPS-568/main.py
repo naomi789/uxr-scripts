@@ -73,7 +73,7 @@ def graph_per_cohort(df_both, measurements):
             plt.title(title)
             plt.legend()
             plt.ylim(0, 1)
-            # plt.axvline(x=cohort_year, linewidth=4, color='r')
+            plt.axvline(x=float(cohort_year), linewidth=2, color='r')
             file_name = folder + title + '.png'
             plt.savefig(file_name)
 
