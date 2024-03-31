@@ -8,64 +8,78 @@ import matplotlib.pyplot as plt
 
 
 def main():
-    df_names_treatment = get_treatment_schools()
     df_original = clean_data()
     df_grade_9_only = df_original[df_original['GradeLevel'] == '9']
-    df_grade_9_only.dropna(subset=['SchoolName'], inplace=True)
-    df_treatment = get_treatment_data(df_names_treatment, df_grade_9_only)
-    df_treatment = df_treatment[df_treatment['StudentGroupType'] == 'AllStudents']
+    df_grade_9_only = df_grade_9_only.dropna(subset=['SchoolName'])
+    df_9_all_students = df_grade_9_only[df_grade_9_only['StudentGroupType'] == 'AllStudents']
+    #  merged_df = pd.merge(df_names_treatment, df_grade_9_only, on=['SchoolName', 'DistrictName'])
+    df_names_treatment = get_treatment_schools()
+    df_merged = pd.merge(df_names_treatment, df_9_all_students, on=['SchoolName', 'DistrictName'], how='outer',
+                         indicator=True)
+    merge_types = {'both': 'treatment', 'left_only': 'needs_match', 'right_only': 'non_treatment'}
+    df_merged['Participation'] = df_merged['_merge'].map(merge_types)
+    df_needs_match = df_merged[df_merged['Participation'] == 'needs_match']
+    df_merged = df_merged.loc[df_merged['Participation'] != 'needs_match']
+    df_merged['Cohort'] = df_merged['Year'].astype(str).replace({'nan': 'non-treatment', 'NA': 'non-treatment'})
+    measurements = ['Ninth Grade on Track', 'Regular Attendance']
+    graph_per_cohort(df_merged, measurements)
+    print('done')
+
 
     # visualize each subgroup
-    measurements = ['Ninth Grade on Track', 'Regular Attendance']
     # aggregates = ['Gender', 'FederalRaceEthnicity', 'EnglishLearner', 'Foster', 'HiCAP', 'Homeless',
     #               'Income', 'Migrant', 'MilitaryFamily', 'Section504', 'SWD']
     # folder = 'TreatmentSubgroupsOfStudents/'
     # per_group_of_students(measurements, aggregates, df_treatment, folder)
     # one graph per treatment group
-    graph_per_cohort(df_treatment, measurements)
-    print('done')
+    # df_merged
 
 
-def graph_per_cohort(df_treatment, measurements):
+def graph_per_cohort(df_both, measurements):
     x_axis = 'SchoolYear'
-    y_axis = 'AverageValueMeasurement'
-
+    unique_years = sorted(df_both['SchoolYear'].unique())
     # Iterate over the groups and print each group
     for measurement in measurements:
         folder = f'Average-ByCohort-{measurement.replace(" ", "")}/'
-        df_one_measurement = df_treatment[df_treatment['Measures'] == measurement]
-        grouped = df_one_measurement.groupby('Year')
-
+        df_one_measurement = df_both[df_both['Measures'] == measurement]
+        grouped = df_one_measurement.groupby('Cohort')
+        df_non_treatment = df_one_measurement[df_one_measurement['Cohort'] == 'non-treatment']
         # calculate n values
         for cohort_year, group_df in grouped:
             # clear graph
             plt.figure()
             title = f'{measurement.replace(" ", "")}-ByCohortAverage-{cohort_year}'
-            for year in [2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023]:
-                x = year
-                y = 0
+            for year in unique_years:
                 sum_numerator = group_df[group_df['SchoolYear'] == year]['Numerator'].sum()
                 sum_denominator = group_df[group_df['SchoolYear'] == year]['Denominator'].sum()
-                # Create the annotation string
                 annotation = '{}/{}'.format(sum_numerator, sum_denominator)
-                plt.annotate(annotation, (x, y), textcoords="offset points", xytext=(0, 10), rotation=90)  # ,  ha='center'
+                plt.annotate(annotation, (year, 0), textcoords="offset points", xytext=(0, 10), rotation=90)
             # df = df_treatment[df_treatment['Measures'] == measurement]
             # df_avg = df.groupby('SchoolYear')['ValueMeasurement'].mean()
             # df_avg = df_avg.reset_index(name='AverageValueMeasurement')
-            df_avg = group_df.groupby('SchoolYear')['ValueMeasurement'].mean()
-            df_avg = df_avg.reset_index(name='AverageValueMeasurement')
+            # df_avg = group_df.groupby('SchoolYear')['ValueMeasurement'].mean()
+            group_df = pd.concat([group_df, df_non_treatment], ignore_index=True)
+            df_avg = group_df.groupby(['SchoolYear', 'Participation'])['ValueMeasurement'].mean()
+            y_axis = f'Avg{measurement.replace(" ", "")}'
+            df_avg = df_avg.reset_index(name=y_axis)
 
-            # start the graph
-            plt.plot(df_avg[x_axis], df_avg[y_axis], label=y_axis)
-            plt.ylim(0, 1)
-            plt.xlabel(x_axis)
-            plt.ylabel(y_axis)
-            plt.axvline(x=cohort_year, linewidth=4, color='r')
-            plt.title(title)  # 'by {} vs {}'.format(y_axis, x_axis))
+            fig, ax = plt.subplots()
+            for label, df_group in df_avg.groupby('Participation'):
+                ax.plot(df_group['SchoolYear'], df_group[f'Avg{measurement.replace(" ", "")}'], marker='o', label=label)
+
+            # Adding labels and legend
+            plt.xlabel('SchoolYear')
+            plt.ylabel(f'Avg{measurement.replace(" ", "")}')
+            plt.title(title)
             plt.legend()
+            plt.ylim(0, 1)
+            # plt.axvline(x=cohort_year, linewidth=4, color='r')
             file_name = folder + title + '.png'
-            # try to label num/denom
             plt.savefig(file_name)
+
+
+
+
 
 
 def practice_rounds():
@@ -95,37 +109,9 @@ def get_treatment_schools():
     return pd.read_csv(file_name, encoding='latin1')
 
 
-def get_treatment_data(df_names_treatment, df_grade_9_only):
-    merged_df = pd.merge(df_names_treatment, df_grade_9_only, on=['SchoolName', 'DistrictName'])
-    return merged_df
-
-
-def check_for_matches():
-    pass
-    # merged_df = pd.merge(df_grade_9_only, df_names_treatment, on='SchoolDistrict', how='inner')
-    # merged_df = merged_df.drop_duplicates(subset='SchoolName', keep='first')
-    # merged_df.to_csv('merged_df.csv', index=False)
-    # unique_treatment_names = list(df_names_treatment['SchoolName'].unique())
-    # unique_school_names = list(df_grade_9_only['SchoolName'].unique())
-    # unique_school_names.sort()
-    # unique_treatment_names.sort()
-    # # ['East Valley-Yakima', 'Eastmont Senior High', 'Sterling Junior High School']
-    # # 'East Valley High School'
-    # # 'Eastmont Junior High'
-    # found_match = list()
-    # no_match_found = list()
-    # needs_match = unique_treatment_names
-    # for name in unique_school_names:
-    #     if name in unique_treatment_names:
-    #         found_match.append(name)
-    #         needs_match.remove(name)
-    #     else:
-    #         no_match_found.append(name)
-    #
-    # found_match.sort()
-    # no_match_found.sort()
-    # needs_match.sort()
-    # return None
+# def get_treatment_data(df_names_treatment, df_grade_9_only):
+#     merged_df = pd.merge(df_names_treatment, df_grade_9_only, on=['SchoolName', 'DistrictName'])
+#     return merged_df
 
 
 def visualize_district(df, measurements, line_name):
