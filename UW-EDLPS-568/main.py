@@ -46,8 +46,12 @@ def graph_per_cohort(df_both, measurements):
         df_non_treatment = df_one_measurement[df_one_measurement['Cohort'] == 'non-treatment']
         # calculate n values
         for cohort_year, group_df in grouped:
+            if cohort_year == 'non-treatment':
+                continue
             # clear graph
             plt.figure()
+            fig, ax = plt.subplots()
+
             title = f'{measurement.replace(" ", "")}-ByCohortAverage-{cohort_year}'
             for year in unique_years:
                 sum_numerator = group_df[group_df['SchoolYear'] == year]['Numerator'].sum()
@@ -63,7 +67,6 @@ def graph_per_cohort(df_both, measurements):
             y_axis = f'Avg{measurement.replace(" ", "")}'
             df_avg = df_avg.reset_index(name=y_axis)
 
-            fig, ax = plt.subplots()
             for label, df_group in df_avg.groupby('Participation'):
                 ax.plot(df_group['SchoolYear'], df_group[f'Avg{measurement.replace(" ", "")}'], marker='o', label=label)
 
