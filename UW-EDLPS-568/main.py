@@ -8,11 +8,12 @@ import matplotlib.pyplot as plt
 
 
 def main():
-    df_names_treatment = getTreatmentSchools()
+    df_names_treatment = get_treatment_schools()
     df_original = clean_data()
     df_grade_9_only = df_original[df_original['GradeLevel'] == '9']
     df_grade_9_only.dropna(subset=['SchoolName'], inplace=True)
-    df_treatment = getTreatmentData(df_names_treatment, df_grade_9_only)
+    df_treatment = get_treatment_data(df_names_treatment, df_grade_9_only)
+    df_treatment = df_treatment[df_treatment['StudentGroupType'] == 'AllStudents']
 
     # visualize each subgroup
     measurements = ['Ninth Grade on Track', 'Regular Attendance']
@@ -26,19 +27,51 @@ def main():
 
 
 def graph_per_cohort(df_treatment, measurements):
-    # Group the DataFrame by the 'Year' column
-    grouped = df_treatment.groupby('Year')
+    x_axis = 'SchoolYear'
+    y_axis = 'AverageValueMeasurement'
 
     # Iterate over the groups and print each group
-    for year, group_df in grouped:
-        df = group_df[group_df['StudentGroupType'] == 'AllStudents']
-        state_avg(df, 'ByCohortGraphStateAverage/', year)
+    for measurement in measurements:
+        folder = f'Average-ByCohort-{measurement.replace(" ", "")}/'
+        df_one_measurement = df_treatment[df_treatment['Measures'] == measurement]
+        grouped = df_one_measurement.groupby('Year')
+
+        # calculate n values
+        for cohort_year, group_df in grouped:
+            # clear graph
+            plt.figure()
+            title = f'{measurement.replace(" ", "")}-ByCohortAverage-{cohort_year}'
+            for year in [2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023]:
+                x = year
+                y = 0
+                sum_numerator = group_df[group_df['SchoolYear'] == year]['Numerator'].sum()
+                sum_denominator = group_df[group_df['SchoolYear'] == year]['Denominator'].sum()
+                # Create the annotation string
+                annotation = '{}/{}'.format(sum_numerator, sum_denominator)
+                plt.annotate(annotation, (x, y), textcoords="offset points", xytext=(0, 10), rotation=90)  # ,  ha='center'
+            # df = df_treatment[df_treatment['Measures'] == measurement]
+            # df_avg = df.groupby('SchoolYear')['ValueMeasurement'].mean()
+            # df_avg = df_avg.reset_index(name='AverageValueMeasurement')
+            df_avg = group_df.groupby('SchoolYear')['ValueMeasurement'].mean()
+            df_avg = df_avg.reset_index(name='AverageValueMeasurement')
+
+            # start the graph
+            plt.plot(df_avg[x_axis], df_avg[y_axis], label=y_axis)
+            plt.ylim(0, 1)
+            plt.xlabel(x_axis)
+            plt.ylabel(y_axis)
+            plt.axvline(x=cohort_year, linewidth=4, color='r')
+            plt.title(title)  # 'by {} vs {}'.format(y_axis, x_axis))
+            plt.legend()
+            file_name = folder + title + '.png'
+            # try to label num/denom
+            plt.savefig(file_name)
+
 
 def practice_rounds():
-    df_names_treatment = getTreatmentSchools()
     df_original = clean_data()
     # df_state_level = df_original[df_original['OrganizationLevel'] == 'State']
-    # df_district_level = df_original[df_original['OrganizationLevel'] == 'District']
+    df_district_level = df_original[df_original['OrganizationLevel'] == 'District']
     df_school_level = cleaner(df_original)
     # ignore subgroups of students
     df_aggregate = df_school_level[df_school_level['StudentGroupType'] == 'AllStudents']
@@ -55,13 +88,20 @@ def practice_rounds():
     df_district_level = df_district_level[df_district_level['StudentGroup'] == 'All Students']
     df_king_county_only = df_district_level[df_district_level['County'] == 'King']
     visualize_district(df_king_county_only, measurements, 'DistrictName')
-    df_public_districts = df_district_level[df_district_level[''] == '']
 
-def getTreatmentSchools():
+
+def get_treatment_schools():
     file_name = 'start_dates.csv'
     return pd.read_csv(file_name, encoding='latin1')
 
-def getTreatmentData(df_names_treatment, df_grade_9_only):
+
+def get_treatment_data(df_names_treatment, df_grade_9_only):
+    merged_df = pd.merge(df_names_treatment, df_grade_9_only, on=['SchoolName', 'DistrictName'])
+    return merged_df
+
+
+def check_for_matches():
+    pass
     # merged_df = pd.merge(df_grade_9_only, df_names_treatment, on='SchoolDistrict', how='inner')
     # merged_df = merged_df.drop_duplicates(subset='SchoolName', keep='first')
     # merged_df.to_csv('merged_df.csv', index=False)
@@ -86,8 +126,7 @@ def getTreatmentData(df_names_treatment, df_grade_9_only):
     # no_match_found.sort()
     # needs_match.sort()
     # return None
-    merged_df = pd.merge(df_names_treatment, df_grade_9_only, on=['SchoolName', 'DistrictName'])
-    return merged_df
+
 
 def visualize_district(df, measurements, line_name):
     x_axis = 'SchoolYear'
@@ -126,6 +165,7 @@ def aggregate_line_graph(df, x_axis, y_axis, title, folder):
     title = folder + title + '.png'
     plt.savefig(title)
 
+
 def clean_data():
     csv_file_path = 'Report_Card_SQSS_from_2014-15_to_2021-22_School_Year_20240318.csv'
     df = pd.read_csv(csv_file_path)
@@ -137,6 +177,7 @@ def clean_data():
     # add new column
     df.loc[:, 'ValueMeasurement'] = df['Numerator'] / df['Denominator']
     return df
+
 
 def cleaner(df):
     # ignore subgroups by grade
@@ -150,6 +191,7 @@ def cleaner(df):
     # df.loc[df['SchoolCode'].notnull(), :]  # Selecting rows where 'SchoolName' is not null
     # df.dropna(subset=['SchoolCode'], inplace=True)  # Dropping rows inplace
     return df
+
 
 def line_graph(df, x_axis, y_axis, line_name, title, folder):
     grouped_data = df.groupby(line_name)
@@ -170,13 +212,14 @@ def line_graph(df, x_axis, y_axis, line_name, title, folder):
 
 def basic_line_graph(df, x_axis, y_axis, title, folder):
     plt.figure()
-    plt.plot(df[x_axis], df[y_axis], label=y_axis) #
+    plt.plot(df[x_axis], df[y_axis], label=y_axis)
     plt.xlabel(x_axis)
     plt.ylabel(y_axis)
     plt.title('{} vs {} ({})'.format(y_axis, x_axis, title))
     plt.legend()
     title = folder + title + '.png'
     plt.savefig(title)
+
 
 def per_school(df, folder):
     # 9TH GRADE ON-TRACK
