@@ -9,19 +9,23 @@ import matplotlib.pyplot as plt
 
 def main():
     df_original = clean_data()
-    df_grade_9_only = df_original[df_original['GradeLevel'] == '9']
-    df_grade_9_only = df_grade_9_only.dropna(subset=['SchoolName'])
-    df_9_all_students = df_grade_9_only[df_grade_9_only['StudentGroupType'] == 'AllStudents']
-    #  merged_df = pd.merge(df_names_treatment, df_grade_9_only, on=['SchoolName', 'DistrictName'])
+    # df_grade_9_only = df_original[df_original['GradeLevel'] == '9']
+    # df_grade_9_only = df_original  #  [df_original['GradeLevel'] == '9']
+    # unique_district_names = sorted(df_original['DistrictName'].unique())
+    #  = df_original.dropna(subset=['SchoolName'])
+    # unique_school_names = sorted(df_original['SchoolName'].unique())
+    df_is_school = df_original[df_original['OrganizationLevel'] == 'School']
+    df_all_students = df_is_school[df_is_school['StudentGroupType'] == 'AllStudents']
     df_names_treatment = get_treatment_schools()
-    df_merged = pd.merge(df_names_treatment, df_9_all_students, on=['SchoolName', 'DistrictName'], how='outer',
-                         indicator=True)
+    df_merged = pd.merge(df_names_treatment, df_all_students, on=['SchoolName', 'DistrictName', 'SchoolCode', 'SchoolOrganizationid'], how='outer', indicator=True)
     merge_types = {'both': 'treatment', 'left_only': 'needs_match', 'right_only': 'non_treatment'}
     df_merged['Participation'] = df_merged['_merge'].map(merge_types)
     df_needs_match = df_merged[df_merged['Participation'] == 'needs_match']
     df_merged = df_merged.loc[df_merged['Participation'] != 'needs_match']
     df_merged['Cohort'] = df_merged['Year'].astype(str).replace({'nan': 'non-treatment', 'NA': 'non-treatment'})
     measurements = ['Ninth Grade on Track', 'Regular Attendance']
+    df_treatment = df_merged[df_merged['Participation'] == 'treatment']
+    df_control = pickControlSchools(df_treatment)
     graph_per_cohort(df_merged, measurements)
     print('done')
 
@@ -33,6 +37,11 @@ def main():
     # per_group_of_students(measurements, aggregates, df_treatment, folder)
     # one graph per treatment group
     # df_merged
+
+def pickControlSchools(df_treatment):
+    # propensity score matching: selection on variables, perhaps 'nearest neighbor' w/ or w/o replacement
+    pass
+    #
 
 
 def graph_per_cohort(df_both, measurements):
