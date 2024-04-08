@@ -5,9 +5,28 @@
 
 import pandas as pd
 import matplotlib.pyplot as plt
+import numpy as np
+import statsmodels.api as sm
 
 
 def main():
+    df_potential_control_schools = collapseToOneRowPerSchool()
+    X = data[['covariate1', 'covariate2', ...]]  # Include all relevant covariates
+    treatment = data['treatment_indicator']
+
+    # Add constant term for intercept
+    X = sm.add_constant(X)
+
+    # Fit logistic regression model to predict treatment assignment
+    logit_model = sm.Logit(treatment, X)
+    logit_result = logit_model.fit()
+
+    # Get propensity scores
+    propensity_scores = logit_result.predict(X)
+
+
+
+def old_main():
     df_original = clean_data()
     # df_grade_9_only = df_original[df_original['GradeLevel'] == '9']
     # df_grade_9_only = df_original  #  [df_original['GradeLevel'] == '9']
@@ -22,10 +41,10 @@ def main():
     df_merged['Participation'] = df_merged['_merge'].map(merge_types)
     df_needs_match = df_merged[df_merged['Participation'] == 'needs_match']
     df_merged = df_merged.loc[df_merged['Participation'] != 'needs_match']
+    df_merged['Treatment'] = df_merged['Participation'].map({'treatment': '1', 'non_treatment': '0'})
     df_merged['Cohort'] = df_merged['Year'].astype(str).replace({'nan': 'non-treatment', 'NA': 'non-treatment'})
+    df_merged.to_csv('df_merged.csv', index=False)
     measurements = ['Ninth Grade on Track', 'Regular Attendance']
-    df_treatment = df_merged[df_merged['Participation'] == 'treatment']
-    df_control = pickControlSchools(df_treatment)
     graph_per_cohort(df_merged, measurements)
     print('done')
 
@@ -38,8 +57,120 @@ def main():
     # one graph per treatment group
     # df_merged
 
-def pickControlSchools(df_treatment):
+
+def collapseToOneRowPerSchool():
+    # GET ENROLLMENT DATA
+    df_enrollment = pd.read_csv('Report_Card_Enrollment_from_2014-15_to_Current_Year_20240404.csv')
+    unique_school_names_any_grade = sorted(df_enrollment['SchoolName'].unique())
+    # remove columns that couldn't be a predictor
+    df_enrollment = df_enrollment.drop(columns=['DataAsOf', 'SchoolOrganizationid', 'DistrictCode', 'DistrictName', 'DistrictOrganizationId', 'SchoolCode'])
+    # only look at schools' data about 9th graders in 2018
+    # TODO: unsure which year to pick!
+    # '2017-18' --> no matches for Rainier Valley, or Chief Leschi
+    # '2018-19' results in no matches for Eastmont Sr, Sterling School, or Chief Leschi
+    df_enrollment = df_enrollment[(df_enrollment['Gradelevel'] == '9th Grade') &
+                                  (df_enrollment['SchoolYear'] == '2018-19') &
+                                  (df_enrollment['OrganizationLevel'] == 'School')]
+    unique_school_names_in_2018_9th_grade = sorted(df_enrollment['SchoolName'].unique())
+    df_enrollment.to_csv('df_enrollment.csv', index=False)
+
+    # GET TREATMENT SCHOOLS
+    df_treatment = pd.read_csv('start_dates.csv', encoding='latin1')
+    # remove columns that couldn't be a predictor
+    df_treatment = df_treatment.drop(columns=['First year', 'When did they start in the network', 'Notes'])
+
+    # MERGE TREATMENT INFO WITH POTENTIAL CONTROLS
+    df_merged = pd.merge(df_treatment, df_enrollment,
+                         on=['SchoolName', 'County', 'ESDName', 'ESDOrganizationID'], how='outer',
+                         indicator=True)
+    # 'SchoolName', 'DistrictName', 'SchoolCode', 'SchoolOrganizationid'
+    merge_types = {'both': 'treatment', 'left_only': 'needs_match', 'right_only': 'non_treatment'}
+    df_merged['Participation'] = df_merged['_merge'].map(merge_types)
+    df_needs_match = df_merged[df_merged['Participation'] == 'needs_match']
+    df_merged = df_merged.loc[df_merged['Participation'] != 'needs_match']
+    df_merged['Treatment'] = df_merged['Participation'].map({'treatment': '1', 'non_treatment': '0'})
+
+    df_merged.to_csv('df_enrollment_treatment.csv', index=False)
+
+    df_measures = pd.read_csv('Report_Card_SQSS_from_2014-15_to_2021-22_School_Year_20240318.csv')
+    df_measures = df_measures[(df_measures['GradeLevel'] == '9') &
+                                  (df_measures['SchoolYear'] == '2018-19') &
+                                  (df_measures['OrganizationLevel'] == 'School')]
+
+    return addMeasurementData(df_merged, df_measures)
+
+def addMeasurementData(df_merged, df_measures):
+    for index, row in df_merged.iterrows():
+        this_school_name = row['SchoolName']
+        this_county = row['County']
+        filtered_df = df_measures[(df_measures['SchoolName'] == this_school_name) & (df_measures['County'] == this_county) & (df_measures['StudentGroup'] == 'All Students')]
+        for i, r in filtered_df.iterrows():
+            if r['Measures'] == 'Ninth Grade on Track':
+                df_merged.at[index, 'Numerator - Ninth Grade on Track'] = r['Numerator']
+                df_merged.at[index, 'Denominator - Ninth Grade on Track'] = r['Denominator']
+                if not pd.isnull(r['Numerator']) and not pd.isnull(r['Denominator']) and r['Denominator'] != 0:
+                    df_merged.at[index, 'Ninth Grade on Track'] = r['Numerator'] / r['Denominator']
+                else:
+                    df_merged.at[index, 'Ninth Grade on Track'] = np.nan
+                df_merged.at[index, 'Ninth Grade on Track'] = r['Numerator'] / r['Denominator']
+            elif r['Measures'] == 'Regular Attendance':
+                df_merged.at[index, 'Numerator - Regular Attendance'] = r['Numerator']
+                df_merged.at[index, 'Denominator - Regular Attendance'] = r['Denominator']
+                if not pd.isnull(r['Numerator']) and not pd.isnull(r['Denominator']) and r['Denominator'] != 0:
+                    df_merged.at[index, 'Regular Attendance'] = r['Numerator'] / r['Denominator']
+                else:
+                    df_merged.at[index, 'Dual Credit'] = np.nan
+            elif r['Measures'] == 'Dual Credit':
+                df_merged.at[index, 'NumberTakingAP'] = r['NumberTakingAP']
+                df_merged.at[index, 'NumberTakingIB'] = r['NumberTakingIB']
+                df_merged.at[index, 'NumberTakingCollegeInTheHighSchool'] = r['NumberTakingCollegeInTheHighSchool']
+                df_merged.at[index, 'NumberTakingCambridge'] = r['NumberTakingCambridge']
+                df_merged.at[index, 'NumberTakingRunningStart'] = r['NumberTakingRunningStart']
+                df_merged.at[index, 'NumberTakingCTETechPrep'] = r['NumberTakingCTETechPrep']
+                df_merged.at[index, 'Numerator - Dual Credit'] = r['Numerator']
+                df_merged.at[index, 'Denominator - Dual Credit'] = r['Denominator']
+                if not pd.isnull(r['Numerator']) and not pd.isnull(r['Denominator']) and r['Denominator'] != 0:
+                    df_merged.at[index, 'Dual Credit'] = r['Numerator'] / r['Denominator']
+                else:
+                    df_merged.at[index, 'Dual Credit'] = np.nan
+
+    df_merged.to_csv('df_potential_control_schools.csv', index=False)
+    return df_merged
+
+def pickControlSchools(df_merged):
     # propensity score matching: selection on variables, perhaps 'nearest neighbor' w/ or w/o replacement
+    # 'matrix_of_features' represents the covariates, and 'Treatment' represents the treatment indicator (0 for control, 1 for treated)
+    # whittle down to only one row of data per participant (aka school)
+
+    # ensure there is no data from after a participant experienced the participant
+
+    # Include all relevant covariates
+    matrix_of_features = df_merged[['County', 'ESDName', 'DistrictName', 'CurrentSchoolType', ...]]
+    treatment = df_merged['Treatment']
+
+    # Add constant term for intercept
+    matrix_of_features = sm.add_constant(matrix_of_features)
+
+    # Fit logistic regression model to predict treatment assignment
+    logit_model = sm.Logit(treatment, matrix_of_features)
+    logit_result = logit_model.fit()
+
+    # Get propensity scores
+    propensity_scores = logit_result.predict(matrix_of_features)
+
+    # Index(['SchoolYear', 'OrganizationLevel', 'County', 'ESDName',
+    #        'ESDOrganizationID', 'DistrictCode', 'DistrictName',
+    #        'DistrictOrganizationId', 'SchoolCode', 'SchoolName',
+    #        'SchoolOrganizationid', 'CurrentSchoolType', 'StudentGroupType',
+    #        'StudentGroup', 'GradeLevel', 'Measures', 'Suppression', 'Numerator',
+    #        'Denominator', 'NumberTakingAP', 'PercentTakingAP', 'NumberTakingIB',
+    #        'PercentTakingIB', 'NumberTakingCollegeInTheHighSchool',
+    #        'PercentTakingCollegeInTheHighSchool', 'NumberTakingCambridge',
+    #        'PercentTakingCambridge', 'NumberTakingRunningStart',
+    #        'PercentTakingRunningStart', 'NumberTakingCTETechPrep',
+    #        'PercentTakingCTETechPrep', 'DataAsOf'],
+    #       dtype='object')
+
     pass
     #
 
@@ -165,6 +296,7 @@ def aggregate_line_graph(df, x_axis, y_axis, title, folder):
 
 
 def clean_data():
+    # https://data.wa.gov/education/Report-Card-Enrollment-from-2014-15-to-Current-Yea/rxjk-6ieq/about_data
     csv_file_path = 'Report_Card_SQSS_from_2014-15_to_2021-22_School_Year_20240318.csv'
     df = pd.read_csv(csv_file_path)
     # cast to int
@@ -292,3 +424,6 @@ main()
 # print(unique_years, unique_names, count_rows)
 # df_9 = df_9[df_9['DistrictName'] == 'Seattle School District No. 1']
 # df_9.to_csv('df_9.csv', index=False)
+
+# value_counts = df_merged['SchoolName'].value_counts()
+# values_occurred_more_than_once = value_counts[value_counts > 1].index.tolist()
