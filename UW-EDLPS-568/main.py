@@ -7,24 +7,82 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 import statsmodels.api as sm
+import random
 
 
 def main():
-    df_potential_control_schools = collapseToOneRowPerSchool()
-    X = data[['covariate1', 'covariate2', ...]]  # Include all relevant covariates
-    treatment = data['treatment_indicator']
+    # test_neighbors()
+    df_potential_controls = collapseToOneRowPerSchool()
+    df_potential_controls = df_potential_controls.dropna()
+    treatment = df_potential_controls[['Treatment']]
+    # treatment = df_potential_controls['Treatment']
 
-    # Add constant term for intercept
-    X = sm.add_constant(X)
+    # TODO: add the categorical variables back in
+    covariates = df_potential_controls[['All Students', 'Female', 'Male', 'Gender X',
+                                               # 'American Indian/ Alaskan Native', 'Asian',
+                                               # 'Black/ African American', 'Hispanic/ Latino of any race(s)',
+                                               # 'Native Hawaiian/ Other Pacific Islander', 'Two or More Races', 'White',
+                                               # 'English Language Learners', 'Highly Capable', 'Homeless', 'Low-Income',
+                                               # 'Migrant', 'Military Parent', 'Mobile', 'Section 504',
+                                               # 'Students with Disabilities', 'Non-English Language Learners',
+                                               # 'Non-Highly Capable', 'Non-Homeless', 'Non-Low Income', 'Non Migrant',
+                                               # 'Non Military Parent', 'Non Mobile', 'Non Section 504',
+                                               # 'Students without Disabilities', 'FosterCare', 'Non-FosterCare',
+                                               # 'NumberTakingAP', 'NumberTakingIB',
+                                               # 'NumberTakingCollegeInTheHighSchool', 'NumberTakingCambridge',
+                                               # 'NumberTakingRunningStart', 'NumberTakingCTETechPrep',
+                                               # 'Numerator - Dual Credit', 'Denominator - Dual Credit', 'Dual Credit',
+                                               # 'Numerator - Ninth Grade on Track',
+                                               # 'Denominator - Ninth Grade on Track', 'Ninth Grade on Track',
+                                               # 'Numerator - Regular Attendance', 'Denominator - Regular Attendance',
+                                               'Regular Attendance'
+                                        ]]
+    # covariates = sm.add_constant(covariates)
+    # logit_model = sm.Logit(treatment, covariates)
+    # logit_result = logit_model.fit()
+    # propensity_scores = logit_result.predict(covariates)
+    # print(propensity_scores)
 
-    # Fit logistic regression model to predict treatment assignment
-    logit_model = sm.Logit(treatment, X)
+    # covariates.loc[:, 'CurrentSchoolType'] = covariates['CurrentSchoolType'].astype('category')
+    # covariates.loc[:, 'SchoolName'] = covariates['SchoolName'].astype('category')
+    # covariates.loc[:, 'County'] = covariates['County'].astype('category')
+    covariates = sm.add_constant(covariates)
+    covariates = covariates.astype(float)
+    covariate_names = covariates.columns
+    # covariates.to_csv('covariates.csv', index=False)
+    # print(len(treatment))
+    # print(treatment)
+    covariates = covariates.rename(columns={x: y for y, x in enumerate(covariates.columns)})
+    covariates.to_csv('covariates-no-col-names.csv', index=False)
+    # TODO remove this bit
+    treatment = np.random.choice([0, 1], size=len(treatment))
+    print(len(treatment))
+    print(treatment)
+    # logit_model = sm.Logit(covariates, treatment)
+    logit_model = sm.Logit(treatment, covariates)
+
     logit_result = logit_model.fit()
+    propensity_scores = logit_result.predict(treatment)
+    print(propensity_scores)
+    print('hi')
 
-    # Get propensity scores
-    propensity_scores = logit_result.predict(X)
 
-
+def test_neighbors():
+    input = {
+        'num_AP': [10, 20, 15, 100, 25],
+        'num_IB': [5, 15, 1, 10, 20],
+        'percent_graduated': [.8, .9, .75, .85, .95],
+        'treatment': [0, 1, 0, 1, 0]
+    }
+    data = pd.DataFrame(input)
+    treatment = data['treatment']
+    covariates = data[['num_AP', 'num_IB', 'percent_graduated']]
+    array = np.asarray(covariates)
+    array = sm.add_constant(array)
+    logit_model = sm.Logit(treatment, array)
+    logit_result = logit_model.fit()
+    propensity_scores = logit_result.predict(array)
+    print(propensity_scores)
 
 def old_main():
     df_original = clean_data()
@@ -89,6 +147,7 @@ def collapseToOneRowPerSchool():
     df_needs_match = df_merged[df_merged['Participation'] == 'needs_match']
     df_merged = df_merged.loc[df_merged['Participation'] != 'needs_match']
     df_merged['Treatment'] = df_merged['Participation'].map({'treatment': '1', 'non_treatment': '0'})
+    df_merged.drop(columns=['Participation', '_merge'], inplace=True)
 
     df_merged.to_csv('df_enrollment_treatment.csv', index=False)
 
@@ -133,6 +192,15 @@ def addMeasurementData(df_merged, df_measures):
                     df_merged.at[index, 'Dual Credit'] = r['Numerator'] / r['Denominator']
                 else:
                     df_merged.at[index, 'Dual Credit'] = np.nan
+
+
+    # if any of the dual credit data is NaN, then set to zero
+    df_merged['NumberTakingAP'].fillna(0, inplace=True)
+    df_merged['NumberTakingIB'].fillna(0, inplace=True)
+    df_merged['NumberTakingCollegeInTheHighSchool'].fillna(0, inplace=True)
+    df_merged['NumberTakingCambridge'].fillna(0, inplace=True)
+    df_merged['NumberTakingRunningStart'].fillna(0, inplace=True)
+    df_merged['NumberTakingCTETechPrep'].fillna(0, inplace=True)
 
     df_merged.to_csv('df_potential_control_schools.csv', index=False)
     return df_merged
