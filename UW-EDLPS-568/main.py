@@ -37,15 +37,10 @@ def main():
     covariates.drop(columns=['Treatment'], inplace=True)
     covariates = sm.add_constant(covariates)
     covariate_names = covariates.columns
-
-    covariates = covariates.rename(columns={x: y for y, x in enumerate(covariates.columns)})
-    # covariates.to_csv('covariates-no-col-names.csv', index=False)
+    # covariates = covariates.rename(columns={x: y for y, x in enumerate(covariates.columns)})
     # TODO remove this bit
-    treatment4 = treatment['Treatment'].astype(float).to_numpy()
-    treatment3 = treatment.values.astype(float)
-    treatment2 = np.random.choice([0, 1], size=len(treatment))
-
-    logit_model = sm.Logit(treatment4, covariates)
+    treatment = treatment['Treatment'].astype(float).to_numpy()
+    logit_model = sm.Logit(treatment, covariates)
     logit_result = logit_model.fit()
     propensity_scores = logit_result.predict(covariates)
     print(propensity_scores)
