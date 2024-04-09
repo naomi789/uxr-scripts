@@ -13,12 +13,7 @@ import random
 def main():
     # test_neighbors()
     df_potential_controls = collapseToOneRowPerSchool()
-    df_potential_controls = df_potential_controls.dropna()
-    treatment = df_potential_controls[['Treatment']]
-    # treatment = df_potential_controls['Treatment']
-
-    # TODO: add the categorical variables back in
-    covariates = df_potential_controls[['All Students', 'Female', 'Male', 'Gender X',
+    covariates = df_potential_controls[['Treatment', 'All Students', 'Female', 'Male', 'Gender X',
                                                # 'American Indian/ Alaskan Native', 'Asian',
                                                # 'Black/ African American', 'Hispanic/ Latino of any race(s)',
                                                # 'Native Hawaiian/ Other Pacific Islander', 'Two or More Races', 'White',
@@ -37,34 +32,23 @@ def main():
                                                # 'Numerator - Regular Attendance', 'Denominator - Regular Attendance',
                                                'Regular Attendance'
                                         ]]
-    # covariates = sm.add_constant(covariates)
-    # logit_model = sm.Logit(treatment, covariates)
-    # logit_result = logit_model.fit()
-    # propensity_scores = logit_result.predict(covariates)
-    # print(propensity_scores)
-
-    # covariates.loc[:, 'CurrentSchoolType'] = covariates['CurrentSchoolType'].astype('category')
-    # covariates.loc[:, 'SchoolName'] = covariates['SchoolName'].astype('category')
-    # covariates.loc[:, 'County'] = covariates['County'].astype('category')
+    covariates = covariates.dropna()
+    treatment = covariates[['Treatment']]
+    covariates.drop(columns=['Treatment'], inplace=True)
     covariates = sm.add_constant(covariates)
-    covariates = covariates.astype(float)
     covariate_names = covariates.columns
-    # covariates.to_csv('covariates.csv', index=False)
-    # print(len(treatment))
-    # print(treatment)
-    covariates = covariates.rename(columns={x: y for y, x in enumerate(covariates.columns)})
-    covariates.to_csv('covariates-no-col-names.csv', index=False)
-    # TODO remove this bit
-    treatment = np.random.choice([0, 1], size=len(treatment))
-    print(len(treatment))
-    print(treatment)
-    # logit_model = sm.Logit(covariates, treatment)
-    logit_model = sm.Logit(treatment, covariates)
 
+    covariates = covariates.rename(columns={x: y for y, x in enumerate(covariates.columns)})
+    # covariates.to_csv('covariates-no-col-names.csv', index=False)
+    # TODO remove this bit
+    treatment4 = treatment['Treatment'].astype(float).to_numpy()
+    treatment3 = treatment.values.astype(float)
+    treatment2 = np.random.choice([0, 1], size=len(treatment))
+
+    logit_model = sm.Logit(treatment4, covariates)
     logit_result = logit_model.fit()
-    propensity_scores = logit_result.predict(treatment)
+    propensity_scores = logit_result.predict(covariates)
     print(propensity_scores)
-    print('hi')
 
 
 def test_neighbors():
@@ -495,3 +479,17 @@ main()
 
 # value_counts = df_merged['SchoolName'].value_counts()
 # values_occurred_more_than_once = value_counts[value_counts > 1].index.tolist()
+
+
+# covariates = sm.add_constant(covariates)
+# logit_model = sm.Logit(treatment, covariates)
+# logit_result = logit_model.fit()
+# propensity_scores = logit_result.predict(covariates)
+# print(propensity_scores)
+# covariates.loc[:, 'CurrentSchoolType'] = covariates['CurrentSchoolType'].astype('category')
+# covariates.loc[:, 'SchoolName'] = covariates['SchoolName'].astype('category')
+# covariates.loc[:, 'County'] = covariates['County'].astype('category')
+# covariates = covariates.astype(float)
+# covariates.to_csv('covariates.csv', index=False)
+# print(len(treatment))
+# print(treatment)
