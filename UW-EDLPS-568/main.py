@@ -55,22 +55,22 @@ def main():
 
 
 
-def test_neighbors():
-    input = {
-        'num_AP': [10, 20, 15, 100, 25],
-        'num_IB': [5, 15, 1, 10, 20],
-        'percent_graduated': [.8, .9, .75, .85, .95],
-        'treatment': [0, 1, 0, 1, 0]
-    }
-    data = pd.DataFrame(input)
-    treatment = data['treatment']
-    covariates = data[['num_AP', 'num_IB', 'percent_graduated']]
-    array = np.asarray(covariates)
-    array = sm.add_constant(array)
-    logit_model = sm.Logit(treatment, array)
-    logit_result = logit_model.fit()
-    propensity_scores = logit_result.predict(array)
-    print(propensity_scores)
+# def test_neighbors():
+#     input = {
+#         'num_AP': [10, 20, 15, 100, 25],
+#         'num_IB': [5, 15, 1, 10, 20],
+#         'percent_graduated': [.8, .9, .75, .85, .95],
+#         'treatment': [0, 1, 0, 1, 0]
+#     }
+#     data = pd.DataFrame(input)
+#     treatment = data['treatment']
+#     covariates = data[['num_AP', 'num_IB', 'percent_graduated']]
+#     array = np.asarray(covariates)
+#     array = sm.add_constant(array)
+#     logit_model = sm.Logit(treatment, array)
+#     logit_result = logit_model.fit()
+#     propensity_scores = logit_result.predict(array)
+#     print(propensity_scores)
 
 def old_main():
     df_original = clean_data()
