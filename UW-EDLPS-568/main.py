@@ -7,13 +7,15 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 import statsmodels.api as sm
-import random
+# import random
+from causalml.match import NearestNeighborMatch
 
 
 def main():
     # test_neighbors()
-    df_potential_controls = collapseToOneRowPerSchool()
-    covariates = df_potential_controls[['Treatment', 'All Students', 'Female', 'Male', 'Gender X',
+    df_all_schools = collapseToOneRowPerSchool()
+    df_all_schools['Treatment'] = df_all_schools['Treatment'].astype(float)
+    df_schools = df_all_schools[['Treatment', 'All Students', 'Female', 'Male', 'Gender X',
                                                'American Indian/ Alaskan Native', 'Asian',
                                                'Black/ African American', 'Hispanic/ Latino of any race(s)',
                                                'Native Hawaiian/ Other Pacific Islander', 'Two or More Races', 'White',
@@ -31,19 +33,26 @@ def main():
                                                'Denominator - Ninth Grade on Track', 'Ninth Grade on Track',
                                                'Numerator - Regular Attendance', 'Denominator - Regular Attendance',
                                                'Regular Attendance'
+                                                #  , 'SchoolType', 'SchoolName', 'County'
                                         ]]
-    covariates = covariates.dropna()
-    treatment = covariates[['Treatment']]
-    covariates.drop(columns=['Treatment'], inplace=True)
+
+    df_schools = df_schools.dropna()
+
+    treatment = df_schools['Treatment'].to_numpy()
+    covariates = df_schools.drop(columns=['Treatment'])
     covariates = sm.add_constant(covariates)
-    covariate_names = covariates.columns
-    # covariates = covariates.rename(columns={x: y for y, x in enumerate(covariates.columns)})
-    # TODO remove this bit
-    treatment = treatment['Treatment'].astype(float).to_numpy()
+
     logit_model = sm.Logit(treatment, covariates)
     logit_result = logit_model.fit()
     propensity_scores = logit_result.predict(covariates)
-    print(propensity_scores)
+    df_schools['Propensity'] = propensity_scores # TYPE: <class 'pandas.core.series.Series'>
+
+    matcher = NearestNeighborMatch(caliper=.5, replace=True, shuffle=True, random_state=100)
+    potential_columns = df_schools.columns[1:].tolist()
+
+    matched_pairs = matcher.match(data=df_schools, score_cols=potential_columns, treatment_col='Treatment')
+    print(matched_pairs)
+
 
 
 def test_neighbors():
