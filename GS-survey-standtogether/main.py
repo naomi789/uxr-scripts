@@ -32,18 +32,6 @@ def bar_graph(df, bars, title):
     plt.show()
 
 
-#     percent = {}
-#     for bar in bars:
-#         percent[bar] = (df[bar].mean()) * 100
-#
-#     plt.bar(percent.keys(), percent.values())
-#     plt.ylim(0, 100)
-#     plt.xlabel('Columns')
-#     plt.ylabel('Percentage')
-#     plt.title(title)
-#     plt.show()
-
-
 def get_data_considered_school_types(responses):
     selected_columns = [
                            "Which of the following kinds of schools and learning opportunities did you consider/are you considering for you kid(s)? Select all that apply."] + [
