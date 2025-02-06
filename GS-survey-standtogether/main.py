@@ -1,6 +1,6 @@
 import pandas as pd
 import matplotlib.pyplot as plt
-import matplotlib.cm as cm
+from collections import defaultdict
 
 
 def main():
@@ -12,6 +12,20 @@ def main():
     collectors_to_drop = ["GreatSchools"]
     df = csv_to_df("CSV/IndividualResponses.csv")
     responses = clean_data(df, collector_dict, collectors_to_drop)
+
+    # SET CONSTANTS
+    label_dict = {
+        "Apprenticeship program": "Apprenticeship program",
+        "Charter schools": "Charter school(s)",
+        "Collaborative learning center": "Collaborative learning center",
+        "Collegiate model school (e.g., college-level classes, dual-enrollment)": "Collegiate Model (e.g., dual-enrollment)",
+        "Homeschool, homeschooling collective": "Homeschooling",
+        "Hybrid school, online school": "Hybrid/Online",
+        "Independent study program": "Independent study program",
+        "Learning pod, microschool, one-room schoolhouse": "Learning pod, Microschool, etc.",
+        "Private schools": "Private school(s)",
+        "Public schools": "Public",
+        "Study abroad or travel-based learning": "Study abroad, etc. "}
 
     # Q2 - What percent of respondents considered only in-system schools? Considered any out-of-system schools? Considered both in-system and OOS schools?
     if run_everything:
@@ -25,24 +39,70 @@ def main():
         school_types = available_schools.columns.tolist()
         school_types.remove("Respondent ID")
         school_types.remove("None of the above")
-        label_dict = {
-            "Apprenticeship program": "Apprenticeship program",
-            "Charter schools": "Charter school(s)",
-            "Collaborative learning center": "Collaborative learning center",
-            "Collegiate model school (e.g., college-level classes, dual-enrollment)": "Collegiate Model (e.g., dual-enrollment)",
-            "Homeschool, homeschooling collective": "Homeschooling",
-            "Hybrid school, online school": "Hybrid/Online",
-            "Independent study program": "Independent study program",
-            "Learning pod, microschool, one-room schoolhouse": "Learning pod, Microschool, etc.",
-            "Private schools": "Private school(s)",
-            "Public schools": "Public",
-            "Study abroad or travel-based learning": "Study abroad, etc. "}
         bar_graph(available_schools, 'strings', school_types,
                   "Percentage of respondents who reported this school type was available", label_dict)
 
     # Are the respondents who are more satisfied with available info the respondents who had more info available?
-    available_data = get_availability_info(responses)
-    histogram2d(available_data[['Count', 'Satisfaction']])
+    if run_everything:
+        available_data = get_availability_info(responses)
+        histogram2d(available_data[['Count', 'Satisfaction']])
+
+    # Are respondents looking for a given school attribute picking similar kinds of schools?
+    school_type_and_reasons = get_school_type_and_reasons(responses)
+    flow_chart(school_type_and_reasons, label_dict)
+
+
+def flow_chart(school_type_and_reasons, label_dict):
+    df = school_type_and_reasons.drop(columns=['Respondent ID'])
+    school_type = 'What kind of school does your K-12 aged child currently attend? If you have more than one K-12 aged children, pick the option that applies for your oldest child.'
+    reasons = df.columns.tolist()
+    reasons.remove(school_type)
+    reasons.remove('Other (please specify)')
+    flows = defaultdict(list)
+    for reason in reasons:
+        filtered_df = df[df[reason] != '']
+        counts = filtered_df[school_type].value_counts()
+        counts_df = pd.DataFrame(counts)
+        counts_df = counts_df.rename_axis('School Type').rename(
+            columns={school_type: 'Count'})  # Rename index and column
+        counts_df['Percentage'] = (counts_df['Count'] / counts_df['Count'].sum() * 100).round(1)
+        counts_df['Percentage'] = pd.to_numeric(counts_df['Percentage'])
+
+        # plt.figure(figsize=(10, 6))
+        fig, ax = plt.subplots()
+        plt.bar(counts_df.index, counts_df['Percentage'])
+
+        plt.ylim(0, 100)
+        plt.title(reason, fontsize=16)
+        plt.xlabel('School Type', fontsize=12)
+        plt.ylabel('Percentage (%)', fontsize=12)
+        ax.set_xticklabels([label_dict.get(label, label) for label in counts_df.index], rotation=90, va='top',
+                           fontsize=10,
+                           ha='center')
+        ax.tick_params(axis='x', which='both', length=0, pad=-250)
+
+        # Display values on top of bars
+        for index, value in enumerate(counts_df['Percentage']):
+            plt.text(index, value + 1, f"{value}%", ha='center', fontsize=10)
+        plt.tight_layout()
+        plt.show()
+
+
+def get_school_type_and_reasons(responses):
+    school_type = 'What kind of school does your K-12 aged child currently attend? If you have more than one K-12 aged children, pick the option that applies for your oldest child.'
+    reasons = 'What were the primary reasons you selected this kind of school? If you have more than one K-12 aged child, please think about your oldest.'
+    columns_to_keep = ["Respondent ID", school_type,
+                       reasons] + [
+                          f"Unnamed: {i}" for i in range(38, 49)]
+    df = responses[columns_to_keep]
+    df = df[df[school_type] != '']
+    # Set the second row as the column names, drop that row, reset index
+    df.columns = df.iloc[0]
+    df = df[1:]
+    df.columns.values[0] = 'Respondent ID'
+    df.columns.values[1] = school_type
+    df.reset_index(drop=True, inplace=True)
+    return df
 
 
 def histogram2d(df):
@@ -56,8 +116,6 @@ def histogram2d(df):
     plt.title('2D Histogram of Count vs Satisfaction')
     plt.colorbar(label='Density')
     plt.show()
-
-
 
 
 def get_availability_info(responses):
@@ -83,7 +141,6 @@ def get_availability_info(responses):
     df['Satisfaction'] = df[og_satisfaction_column].str[0]
     df['Count'] = pd.to_numeric(df['Count'], errors='coerce').astype('Int64')
     df['Satisfaction'] = pd.to_numeric(df['Satisfaction'], errors='coerce').astype('Int64')
-
 
     return df
 
