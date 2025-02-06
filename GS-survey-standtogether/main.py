@@ -14,29 +14,31 @@ def main():
 
     # Q2 - What percent of respondents considered only in-system schools? Considered any out-of-system schools? Considered both in-system and OOS schools?
     if run_everything:
-        considered_schools = get_data_considered_school_types(responses)
+        considered_schools = get_considered_school_types(responses)
         bar_graph(considered_schools, 'bool', ["only OOS", "only IS", "both"],
                   'Percentage of respondents who considered different school types')
 
     # Q2 - For what percent of respondents is each school type available?
-    available_schools = get_data_available_schools(responses)
-    school_types = available_schools.columns.tolist()
-    school_types.remove("Respondent ID")
-    school_types.remove("None of the above")
-    label_dict = {
-        "Apprenticeship program": "Apprenticeship program",
-        "Charter schools": "Charter school(s)",
-        "Collaborative learning center": "Collaborative learning center",
-        "Collegiate model school (e.g., college-level classes, dual-enrollment)": "Collegiate Model (e.g., dual-enrollment)",
-        "Homeschool, homeschooling collective": "Homeschooling",
-        "Hybrid school, online school": "Hybrid/Online",
-        "Independent study program": "Independent study program",
-        "Learning pod, microschool, one-room schoolhouse": "Learning pod, Microschool, etc.",
-        "Private schools": "Private school(s)",
-        "Public schools": "Public",
-        "Study abroad or travel-based learning": "Study abroad, etc. "}
-    bar_graph(available_schools, 'strings', school_types,
-              "Percentage of respondents who reported this school type was available", label_dict)
+    if run_everything:
+        available_schools = get_available_schools(responses)
+        school_types = available_schools.columns.tolist()
+        school_types.remove("Respondent ID")
+        school_types.remove("None of the above")
+        label_dict = {
+            "Apprenticeship program": "Apprenticeship program",
+            "Charter schools": "Charter school(s)",
+            "Collaborative learning center": "Collaborative learning center",
+            "Collegiate model school (e.g., college-level classes, dual-enrollment)": "Collegiate Model (e.g., dual-enrollment)",
+            "Homeschool, homeschooling collective": "Homeschooling",
+            "Hybrid school, online school": "Hybrid/Online",
+            "Independent study program": "Independent study program",
+            "Learning pod, microschool, one-room schoolhouse": "Learning pod, Microschool, etc.",
+            "Private schools": "Private school(s)",
+            "Public schools": "Public",
+            "Study abroad or travel-based learning": "Study abroad, etc. "}
+        bar_graph(available_schools, 'strings', school_types,
+                  "Percentage of respondents who reported this school type was available", label_dict)
+
 
 
 def bar_graph(df, data_type, bars, title, label_dict = None):
@@ -64,10 +66,9 @@ def bar_graph(df, data_type, bars, title, label_dict = None):
     ax.set_ylabel('Percentage')
     ax.set_title(title)
     plt.show()
-    pass
 
 
-def get_data_available_schools(responses):
+def get_available_schools(responses):
     selected_columns = [
                            "Respondent ID",
                            "Which of the following kinds of schools and learning opportunities did you consider/are you considering for you kid(s)? Select all that apply.",
@@ -86,7 +87,7 @@ def get_data_available_schools(responses):
     return df_merged
 
 
-def get_data_considered_school_types(responses):
+def get_considered_school_types(responses):
     selected_columns = [
                            "Which of the following kinds of schools and learning opportunities did you consider/are you considering for you kid(s)? Select all that apply."] + [
                            f"Unnamed: {i}" for i in range(11, 22)] + ["Respondent ID"]
