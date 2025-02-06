@@ -14,7 +14,7 @@ def main():
     responses = clean_data(df, collector_dict, collectors_to_drop)
 
     # SET CONSTANTS
-    label_dict = {
+    short_school_types_dict = {
         "Apprenticeship program": "Apprenticeship program",
         "Charter schools": "Charter school(s)",
         "Collaborative learning center": "Collaborative learning center",
@@ -26,6 +26,19 @@ def main():
         "Private schools": "Private school(s)",
         "Public schools": "Public",
         "Study abroad or travel-based learning": "Study abroad, etc. "}
+    short_reason_dict = {
+        "Academic excellence (e.g., high test scores, college acceptance ratios)": "Academic excellence",
+        "Classes, curriculums, programs (e.g., electives, sports, language immersion, STEM, AP/IB classes)": "Classes, curriculums, programs",
+        "Excellent teachers (based on reviews, credentials, or reputation)": "Excellent teachers",
+        "Financial factors (e.g., affordability of tuition or extracurriculars, financial aid, scholarships)": "Financial factors",
+        "Location (convenience, safety, transportation)": "Location",
+        "School culture & safety (e.g., bullying prevention, disciplinary policies, diversity & inclusion, mental health support, sense of community)": "Culture & safety",
+        "Recommendation from a trusted source (e.g., family, friends, educators)": "Recommendations",
+        "Smaller class sizes or individualized attention": "Class sizes",
+        "Special services or support (e.g., IEP/504 policies, resources, specialists)": "Special services",
+        "Teaching styles or philosophies (e.g., Montessori, Waldorf, unschooling, project-based learning)": "Teaching styles",
+        "Values-based education (e.g., cultural instruction, religious education)": "Values-based instruction"
+    }
 
     # Q2 - What percent of respondents considered only in-system schools? Considered any out-of-system schools? Considered both in-system and OOS schools?
     if run_everything:
@@ -40,53 +53,73 @@ def main():
         school_types.remove("Respondent ID")
         school_types.remove("None of the above")
         bar_graph(available_schools, 'strings', school_types,
-                  "Percentage of respondents who reported this school type was available", label_dict)
+                  "Percentage of respondents who reported this school type was available", short_school_types_dict)
 
     # Are the respondents who are more satisfied with available info the respondents who had more info available?
     if run_everything:
         available_data = get_availability_info(responses)
         histogram2d(available_data[['Count', 'Satisfaction']])
 
-    # Are respondents looking for a given school attribute picking similar kinds of schools?
+    # comparing school type vs. reason to pick school type
     school_type_and_reasons = get_school_type_and_reasons(responses)
-    flow_chart(school_type_and_reasons, label_dict)
-    # For people who pick a given school type, what were their reasons?
+    if run_everything:
+        # Given reason(s), what school type was picked?
+        given_type_graph_reasons(school_type_and_reasons, short_school_types_dict)
+    # given school type, what were the reasons?
+    given_reasons_graph_type(school_type_and_reasons, short_reason_dict)
 
 
-
-
-
-
-def flow_chart(school_type_and_reasons, label_dict):
-    df = school_type_and_reasons.drop(columns=['Respondent ID'])
-    school_type = 'What kind of school does your K-12 aged child currently attend? If you have more than one K-12 aged children, pick the option that applies for your oldest child.'
-    reasons = df.columns.tolist()
-    reasons.remove(school_type)
-    reasons.remove('Other (please specify)')
+def given_type_graph_reasons(school_type_and_reasons, label_dict):
+    x_axis_title = 'School Type'
+    reasons = school_type_and_reasons.columns.tolist()
+    reasons.remove(x_axis_title)
     for reason in reasons:
-        filtered_df = df[df[reason] != '']
-        counts = filtered_df[school_type].value_counts()
+        filtered_df = school_type_and_reasons[school_type_and_reasons[reason] != '']
+        counts = filtered_df[x_axis_title].value_counts()
         counts_df = pd.DataFrame(counts)
-        counts_df = counts_df.rename_axis('School Type').rename(
-            columns={school_type: 'Count'})
-        counts_df['Percentage'] = (counts_df['Count'] / counts_df['Count'].sum() * 100).round(1)
-        counts_df['Percentage'] = pd.to_numeric(counts_df['Percentage'])
+        counts_df = counts_df.rename_axis(x_axis_title).rename(
+            columns={x_axis_title: 'Count'})
+        bar_graph2(counts_df, x_axis_title, reason, label_dict)
 
-        fig, ax = plt.subplots()
-        plt.bar(counts_df.index, counts_df['Percentage'])
-        plt.ylim(0, 100)
-        plt.title(reason, fontsize=16)
-        plt.xlabel('School Type', fontsize=12)
-        plt.ylabel('Percentage (%)', fontsize=12)
-        ax.set_xticklabels([label_dict.get(label, label) for label in counts_df.index], rotation=90, va='top',
-                           fontsize=10,
-                           ha='center')
-        ax.tick_params(axis='x', which='both', length=0, pad=-250)
 
-        for index, value in enumerate(counts_df['Percentage']):
-            plt.text(index, value + 1, f"{value}%", ha='center', fontsize=10)
-        plt.tight_layout()
-        plt.show()
+def given_reasons_graph_type(school_type_and_reasons, label_dict):
+    x_axis_title = 'Reason'
+    school_types = school_type_and_reasons['School Type'].unique()
+    for school_type in school_types:
+        filtered_df = school_type_and_reasons[school_type_and_reasons['School Type'] == school_type]
+        reason_counts = {}
+        for column in filtered_df.columns:
+            if column != 'School Type':
+                count = filtered_df[filtered_df[column] != ''].shape[0]
+                if count > 0:
+                    reason_counts[column] = count
+
+        reason_df = pd.DataFrame(list(reason_counts.items()), columns=['Reason', 'Count'])
+        print(reason_df.index)
+
+        reason_df = reason_df.set_index('Reason')
+        bar_graph2(reason_df, x_axis_title, school_type, label_dict)
+
+
+def bar_graph2(counts_df, x_axis_title, column, label_dict):
+    counts_df['Percentage'] = (counts_df['Count'] / counts_df['Count'].sum() * 100).round(1)
+    counts_df['Percentage'] = pd.to_numeric(counts_df['Percentage'])
+    fig, ax = plt.subplots()
+    plt.bar(counts_df.index, counts_df['Percentage'])
+    plt.ylim(0, 100)
+    plt.title(column, fontsize=16)
+    plt.xlabel(x_axis_title, fontsize=12)
+    plt.ylabel('Percentage (%)', fontsize=12)
+    print(counts_df.index)
+    ax.set_xticklabels([label_dict.get(label, label) for label in counts_df.index], rotation=90, va='top',
+                       fontsize=10,
+                       ha='center')
+    ax.tick_params(axis='x', which='both', length=0, pad=-250)
+
+    for index, value in enumerate(counts_df['Percentage']):
+        plt.text(index, value + 1, f"{value}%", ha='center', fontsize=10)
+    plt.tight_layout()
+    plt.show()
 
 
 def get_school_type_and_reasons(responses):
@@ -101,8 +134,11 @@ def get_school_type_and_reasons(responses):
     df.columns = df.iloc[0]
     df = df[1:]
     df.columns.values[0] = 'Respondent ID'
-    df.columns.values[1] = school_type
+    df.columns.values[1] = 'School Type'
+    df = df.drop(columns=['Respondent ID'])
+    df = df.drop(columns=['Other (please specify)'])
     df.reset_index(drop=True, inplace=True)
+
     return df
 
 
