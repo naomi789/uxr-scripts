@@ -57,7 +57,7 @@ def main():
                   "Percentage of respondents who reported this school type was available", short_school_types_dict)
 
     # Are the respondents who are more satisfied with available info the respondents who had more info available?
-    if True:
+    if run_everything:
         available_data = get_availability_info(responses)
         x = 'Count'
         y = 'Satisfaction'
@@ -76,9 +76,9 @@ def main():
     x = 'Numeric School Type'
     y = 'Ease'
     school_type_choice_ease[x] = pd.Categorical(school_type_choice_ease['School Type']).codes
+    x_axis_key = dict(enumerate(pd.Categorical(school_type_choice_ease['School Type']).categories))
 
-    # pd.to_numeric(df[choice_ease].astype(str).str[0], errors='coerce').astype('Int64')
-    histogram2d(school_type_choice_ease[[x, y]], x, y, '2D Histogram of School Type vs Ease of Choice')
+    histogram2d(school_type_choice_ease[[x, y]], x, y, '2D Histogram of School Type vs Ease of Choice', x_axis_key)
 
 
 def get_type_ease(df):
@@ -169,21 +169,28 @@ def get_school_type_and_reasons(responses):
     return df
 
 
-def histogram2d(df, x_col, y_col, title):
-    H, xedges, yedges, _ = plt.hist2d(df[x_col], df[y_col], cmap='Blues', bins=(10, 5))
+def histogram2d(df, x_col, y_col, title, x_axis_dict=None):
+    fig, ax = plt.subplots()  # Create a figure and axis
+    H, xedges, yedges, _ = plt.hist2d(df[x_col], df[y_col], cmap='Blues', bins=(11, 5))
     # X
-    x_labels = sorted(df[x_col].unique())
-    plt.xticks(ticks=range(len(x_labels)), labels=x_labels)
     plt.xlabel(x_col)
+    if x_axis_dict is None:
+        x_labels = sorted(df[x_col].unique())
+        ax.set_xticks(range(len(x_labels)))
+        ax.set_xticklabels(x_labels, va='bottom', fontsize=10, ha='left')
+        ax.tick_params(axis='x', which='both', length=0, pad=20)
+    else:
+        x_labels = [x_axis_dict[key] for key in sorted(df[x_col].unique())]
+        ax.set_xticks(range(len(x_labels)))
+        ax.set_xticklabels(x_labels, rotation=90, va='top', fontsize=10, ha='center')
+        ax.tick_params(axis='x', which='both', length=0, pad=-250)
+
     # Y
     plt.yticks(ticks=range(int(min(yedges)), int(max(yedges)) + 1))
     plt.ylabel(y_col)
     plt.title(title)
     plt.colorbar(label='Density')
     plt.show()
-
-
-
 
 
 def get_availability_info(responses):
