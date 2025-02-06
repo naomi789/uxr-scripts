@@ -58,7 +58,9 @@ def main():
     # Are the respondents who are more satisfied with available info the respondents who had more info available?
     if run_everything:
         available_data = get_availability_info(responses)
-        histogram2d(available_data[['Count', 'Satisfaction']])
+        x = 'Count'
+        y = 'Satisfaction'
+        histogram2d(available_data[[x, y]], x, y, '2D Histogram of Count vs Satisfaction')
 
     # comparing school type vs. reason to pick school type
     school_type_and_reasons = get_school_type_and_reasons(responses)
@@ -70,6 +72,9 @@ def main():
 
     # Are respondents who pick a given school type more likely to say it was easy/hard to pick their school?
     school_type_choice_ease = get_type_ease(responses)
+    x = 'School Type'
+    y = 'Ease'
+    histogram2d(school_type_choice_ease[[x, y]], x, y, '2D Histogram of School Type vs Ease of Choice')
 
 
 def get_type_ease(df):
@@ -81,7 +86,7 @@ def get_type_ease(df):
     df = df.iloc[1:]  # gets rid of surveymonkey data
     df = df[df[[school_type, choice_ease]].apply(lambda row: all(row != ''), axis=1)]
     df['Ease'] = pd.to_numeric(df[choice_ease].astype(str).str[0], errors='coerce').astype('Int64')
-
+    df = df.rename(columns={school_type: 'School Type'})
     df = df.drop(columns=['Respondent ID', choice_ease])
     df.reset_index(drop=True, inplace=True)
     return df
@@ -160,15 +165,15 @@ def get_school_type_and_reasons(responses):
     return df
 
 
-def histogram2d(df):
-    H, xedges, yedges, _ = plt.hist2d(df['Count'], df['Satisfaction'], bins=(11, 5), cmap='Blues')
+def histogram2d(df, x_col, y_col, title):
+    H, xedges, yedges, _ = plt.hist2d(df[x_col], df[y_col], bins=(11, 5), cmap='Blues')
     x_ticks = list(range(int(xedges.min()), int(xedges.max()) + 1))
     plt.xticks(x_ticks)
-    plt.xlabel('Count')
+    plt.xlabel(x_col)
     y_ticks = list(range(int(yedges.min()), int(yedges.max()) + 1))
     plt.yticks(y_ticks)
-    plt.ylabel('Satisfaction')
-    plt.title('2D Histogram of Count vs Satisfaction')
+    plt.ylabel(y_col)
+    plt.title(title)
     plt.colorbar(label='Density')
     plt.show()
 
