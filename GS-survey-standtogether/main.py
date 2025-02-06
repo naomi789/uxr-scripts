@@ -1,6 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 from collections import defaultdict
+from matplotlib.ticker import MaxNLocator
 
 
 def main():
@@ -56,7 +57,7 @@ def main():
                   "Percentage of respondents who reported this school type was available", short_school_types_dict)
 
     # Are the respondents who are more satisfied with available info the respondents who had more info available?
-    if run_everything:
+    if True:
         available_data = get_availability_info(responses)
         x = 'Count'
         y = 'Satisfaction'
@@ -72,9 +73,12 @@ def main():
 
     # Are respondents who pick a given school type more likely to say it was easy/hard to pick their school?
     school_type_choice_ease = get_type_ease(responses)
-    x = 'School Type'
+    x = 'Numeric School Type'
     y = 'Ease'
-    histogram2d(school_type_choice_ease[[x, y]], x, y, '2D Histogram of School Type vs Ease of Choice')
+    school_type_choice_ease[x] = pd.Categorical(school_type_choice_ease['School Type']).codes
+
+    # pd.to_numeric(df[choice_ease].astype(str).str[0], errors='coerce').astype('Int64')
+    histogram2d(school_type_choice_ease[[x, y]], x, y, '2D Histogram of School Type vs Ease of Choice', False, True)
 
 
 def get_type_ease(df):
@@ -165,17 +169,25 @@ def get_school_type_and_reasons(responses):
     return df
 
 
-def histogram2d(df, x_col, y_col, title):
-    H, xedges, yedges, _ = plt.hist2d(df[x_col], df[y_col], bins=(11, 5), cmap='Blues')
-    x_ticks = list(range(int(xedges.min()), int(xedges.max()) + 1))
-    plt.xticks(x_ticks)
+def histogram2d(df, x_col, y_col, title, x_int=True, y_int=True):
+    H, xedges, yedges, _ = plt.hist2d(df[x_col], df[y_col], cmap='Blues') # bins='auto', cmap='Blues', origin='lower'
+    if x_int:
+        plt.gca().xaxis.set_major_locator(MaxNLocator(integer=True))
+
+    x_labels = sorted(df[x_col].unique())  # Sort the unique x values
+    plt.xticks(ticks=range(len(x_labels)), labels=x_labels, rotation=45)
     plt.xlabel(x_col)
-    y_ticks = list(range(int(yedges.min()), int(yedges.max()) + 1))
-    plt.yticks(y_ticks)
+
+    if y_int:
+        plt.gca().yaxis.set_major_locator(MaxNLocator(integer=True))
+
     plt.ylabel(y_col)
     plt.title(title)
     plt.colorbar(label='Density')
     plt.show()
+
+
+
 
 
 def get_availability_info(responses):
