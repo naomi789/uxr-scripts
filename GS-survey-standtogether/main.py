@@ -65,8 +65,26 @@ def main():
     if run_everything:
         # Given reason(s), what school type was picked?
         given_type_graph_reasons(school_type_and_reasons, short_school_types_dict)
-    # given school type, what were the reasons?
-    given_reasons_graph_type(school_type_and_reasons, short_reason_dict)
+        # given school type, what were the reasons?
+        given_reasons_graph_type(school_type_and_reasons, short_reason_dict)
+
+    # Are respondents who pick a given school type more likely to say it was easy/hard to pick their school?
+    school_type_choice_ease = get_type_ease(responses)
+
+
+def get_type_ease(df):
+    school_type = 'What kind of school does your K-12 aged child currently attend? If you have more than one K-12 aged children, pick the option that applies for your oldest child.'
+    choice_ease = 'How was your experience PICKING this school? If you have more than one K-12 aged child, please think about your oldest.'
+    columns_to_keep = ['Respondent ID', school_type, choice_ease]
+    df = df[columns_to_keep]
+
+    df = df.iloc[1:]  # gets rid of surveymonkey data
+    df = df[df[[school_type, choice_ease]].apply(lambda row: all(row != ''), axis=1)]
+    df['Ease'] = pd.to_numeric(df[choice_ease].astype(str).str[0], errors='coerce').astype('Int64')
+
+    df = df.drop(columns=['Respondent ID', choice_ease])
+    df.reset_index(drop=True, inplace=True)
+    return df
 
 
 def given_type_graph_reasons(school_type_and_reasons, label_dict):
