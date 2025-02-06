@@ -50,6 +50,11 @@ def main():
     # Are respondents looking for a given school attribute picking similar kinds of schools?
     school_type_and_reasons = get_school_type_and_reasons(responses)
     flow_chart(school_type_and_reasons, label_dict)
+    # For people who pick a given school type, what were their reasons?
+
+
+
+
 
 
 def flow_chart(school_type_and_reasons, label_dict):
@@ -58,20 +63,17 @@ def flow_chart(school_type_and_reasons, label_dict):
     reasons = df.columns.tolist()
     reasons.remove(school_type)
     reasons.remove('Other (please specify)')
-    flows = defaultdict(list)
     for reason in reasons:
         filtered_df = df[df[reason] != '']
         counts = filtered_df[school_type].value_counts()
         counts_df = pd.DataFrame(counts)
         counts_df = counts_df.rename_axis('School Type').rename(
-            columns={school_type: 'Count'})  # Rename index and column
+            columns={school_type: 'Count'})
         counts_df['Percentage'] = (counts_df['Count'] / counts_df['Count'].sum() * 100).round(1)
         counts_df['Percentage'] = pd.to_numeric(counts_df['Percentage'])
 
-        # plt.figure(figsize=(10, 6))
         fig, ax = plt.subplots()
         plt.bar(counts_df.index, counts_df['Percentage'])
-
         plt.ylim(0, 100)
         plt.title(reason, fontsize=16)
         plt.xlabel('School Type', fontsize=12)
@@ -81,7 +83,6 @@ def flow_chart(school_type_and_reasons, label_dict):
                            ha='center')
         ax.tick_params(axis='x', which='both', length=0, pad=-250)
 
-        # Display values on top of bars
         for index, value in enumerate(counts_df['Percentage']):
             plt.text(index, value + 1, f"{value}%", ha='center', fontsize=10)
         plt.tight_layout()
