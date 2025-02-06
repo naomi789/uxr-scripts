@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 
 
 def main():
-    run_everything = True
+    run_everything = False
     # Convert CSVs to DataFrames
     collectors = csv_to_df("CSV/CollectorList.csv")
     collector_dict = collectors.set_index("CollectorID")["Title"].to_dict()
@@ -39,9 +39,20 @@ def main():
         bar_graph(available_schools, 'strings', school_types,
                   "Percentage of respondents who reported this school type was available", label_dict)
 
+    # Are the respondents who are more satisfied with available info the respondents who had more info available?
+    available_data = get_availability_info(responses)
 
 
-def bar_graph(df, data_type, bars, title, label_dict = None):
+def get_availability_info(responses):
+    columns_to_keep = ["Respondent ID",
+                       "What information is available to you about K-12 schools? Select all that apply.",
+                       "How satisfied are you with the information available to you about the kinds of schools that you considered for your kid(s)?"] + [
+                          f"Unnamed: {i}" for i in range(52, 61)]
+    df_filtered = responses[columns_to_keep]
+    pass
+
+
+def bar_graph(df, data_type, bars, title, label_dict=None):
     percent = {}
     fig, ax = plt.subplots()
     if data_type == "bool":
@@ -58,9 +69,9 @@ def bar_graph(df, data_type, bars, title, label_dict = None):
 
     # ax.set_xticklabels(percent.keys(), rotation=90, va='top', fontsize=10, ha='center')
 
-    ax.set_xticklabels([label_dict.get(label, label) for label in percent.keys()], rotation=90, va='top', fontsize=10, ha='center')
+    ax.set_xticklabels([label_dict.get(label, label) for label in percent.keys()], rotation=90, va='top', fontsize=10,
+                       ha='center')
     ax.tick_params(axis='x', which='both', length=0, pad=-250)
-
 
     ax.set_ylim(0, 100)
     ax.set_ylabel('Percentage')
@@ -156,7 +167,7 @@ def clean_data(df, collector_dict, collectors_to_drop):
     df = df[~df["Collector ID"].isin(collectors_to_drop)]
 
     # Remove data from bad actors
-    columns_to_check = ['Unnamed: 21', 'Unnamed: 35', 'Unnamed: 48']
+    columns_to_check = ['Unnamed: 21', 'Unnamed: 35', 'Unnamed: 48', 'Unnamed: 60']
     values_to_drop = ['Spy', 'Spy Schools', 'BIG BLACK OILY MEN', 'BIG OILY MEN', 'My Project 65443', 'im a kid.', 'hi',
                       'drippy', 'alien school on mars', 'ZAKAYLA GILLESPIE', 'Swddv. SdssstszadrfsasdwqsZzz zx',
                       'other,pjap', 'College', 'no clue', 'ALIENS=EPIC', 'UFO AND ALIENS',
