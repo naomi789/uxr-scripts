@@ -41,13 +41,13 @@ def main():
         "Values-based education (e.g., cultural instruction, religious education)": "Values-based instruction"
     }
 
-    # Q2 - What percent of respondents considered only in-system schools? Considered any out-of-system schools? Considered both in-system and OOS schools?
+    #  What percent of respondents considered only in-system schools? Considered any out-of-system schools? Considered both in-system and OOS schools?
     if run_everything:
         considered_schools = get_considered_school_types(responses)
         bar_graph(considered_schools, 'bool', ["only OOS", "only IS", "both"],
                   'Percentage of respondents who considered different school types')
 
-    # Q2 - For what percent of respondents is each school type available?
+    #  For what percent of respondents is each school type available?
     if run_everything:
         available_schools = get_available_schools(responses)
         school_types = available_schools.columns.tolist()
@@ -56,29 +56,32 @@ def main():
         bar_graph(available_schools, 'strings', school_types,
                   "Percentage of respondents who reported this school type was available", short_school_types_dict)
 
-    # Are the respondents who are more satisfied with available info the respondents who had more info available?
+    #  Are the respondents who are more satisfied with available info the respondents who had more info available?
     if run_everything:
         available_data = get_availability_info(responses)
         x = 'Count'
         y = 'Satisfaction'
         histogram2d(available_data[[x, y]], x, y, '2D Histogram of Count vs Satisfaction')
 
-    # comparing school type vs. reason to pick school type
-    school_type_and_reasons = get_school_type_and_reasons(responses)
+    #  Comparing school type vs. reason to pick school type
     if run_everything:
+        school_type_and_reasons = get_school_type_and_reasons(responses)
         # Given reason(s), what school type was picked?
         given_type_graph_reasons(school_type_and_reasons, short_school_types_dict)
         # given school type, what were the reasons?
         given_reasons_graph_type(school_type_and_reasons, short_reason_dict)
 
-    # Are respondents who pick a given school type more likely to say it was easy/hard to pick their school?
-    school_type_choice_ease = get_type_ease(responses)
-    x = 'Numeric School Type'
-    y = 'Ease'
-    school_type_choice_ease[x] = pd.Categorical(school_type_choice_ease['School Type']).codes
-    x_axis_key = dict(enumerate(pd.Categorical(school_type_choice_ease['School Type']).categories))
+    #  Are respondents who pick a given school type more likely to say it was easy/hard to pick their school?
+    if run_everything:
+        school_type_choice_ease = get_type_ease(responses)
+        x = 'Numeric School Type'
+        y = 'Ease'
+        school_type_choice_ease[x] = pd.Categorical(school_type_choice_ease['School Type']).codes
+        x_axis_key = dict(enumerate(pd.Categorical(school_type_choice_ease['School Type']).categories))
 
-    histogram2d(school_type_choice_ease[[x, y]], x, y, '2D Histogram of School Type vs Ease of Choice', x_axis_key)
+        histogram2d(school_type_choice_ease[[x, y]], x, y, '2D Histogram of School Type vs Ease of Choice', x_axis_key)
+
+    #  Are respondents who pick a given school type more likely to say there was/was not enough information?
 
 
 def get_type_ease(df):
