@@ -78,7 +78,7 @@ def main():
     school_type_choice_ease[x] = pd.Categorical(school_type_choice_ease['School Type']).codes
 
     # pd.to_numeric(df[choice_ease].astype(str).str[0], errors='coerce').astype('Int64')
-    histogram2d(school_type_choice_ease[[x, y]], x, y, '2D Histogram of School Type vs Ease of Choice', False, True)
+    histogram2d(school_type_choice_ease[[x, y]], x, y, '2D Histogram of School Type vs Ease of Choice')
 
 
 def get_type_ease(df):
@@ -169,18 +169,14 @@ def get_school_type_and_reasons(responses):
     return df
 
 
-def histogram2d(df, x_col, y_col, title, x_int=True, y_int=True):
-    H, xedges, yedges, _ = plt.hist2d(df[x_col], df[y_col], cmap='Blues') # bins='auto', cmap='Blues', origin='lower'
-    if x_int:
-        plt.gca().xaxis.set_major_locator(MaxNLocator(integer=True))
-
-    x_labels = sorted(df[x_col].unique())  # Sort the unique x values
-    plt.xticks(ticks=range(len(x_labels)), labels=x_labels, rotation=45)
+def histogram2d(df, x_col, y_col, title):
+    H, xedges, yedges, _ = plt.hist2d(df[x_col], df[y_col], cmap='Blues', bins=(10, 5))
+    # X
+    x_labels = sorted(df[x_col].unique())
+    plt.xticks(ticks=range(len(x_labels)), labels=x_labels)
     plt.xlabel(x_col)
-
-    if y_int:
-        plt.gca().yaxis.set_major_locator(MaxNLocator(integer=True))
-
+    # Y
+    plt.yticks(ticks=range(int(min(yedges)), int(max(yedges)) + 1))
     plt.ylabel(y_col)
     plt.title(title)
     plt.colorbar(label='Density')
