@@ -81,7 +81,29 @@ def main():
 
         histogram2d(school_type_choice_ease[[x, y]], x, y, '2D Histogram of School Type vs Ease of Choice', x_axis_key)
 
-    #  Are respondents who pick a given school type more likely to say there was/was not enough information?
+    #  Are respondents who pick a given school type more likely to be more/less satisfied with the amount of information?
+    if run_everything:
+        type_satisfaction = get_type_satisfaction(responses)
+        x = 'Numeric School Type'
+        y = 'Satisfaction'
+        type_satisfaction[x] = pd.Categorical(type_satisfaction['School Type']).codes
+        categorical_key = dict(enumerate(pd.Categorical(type_satisfaction['School Type']).categories))
+        histogram2d(type_satisfaction[[x, y]], x, y, '2D Histogram of School Type vs Satisfaction with Info', categorical_key)
+
+
+def get_type_satisfaction(responses):
+    school_type = 'What kind of school does your K-12 aged child currently attend? If you have more than one K-12 aged children, pick the option that applies for your oldest child.'
+    satisfaction = 'How satisfied are you with the information available to you about the kinds of schools that you considered for your kid(s)?'
+    columns_to_keep = ['Respondent ID', school_type, satisfaction]
+    df = responses[columns_to_keep]
+    df = df.iloc[1:]  # gets rid of surveymonkey data
+    df = df[df[[school_type, satisfaction]].apply(lambda row: all(row != ''), axis=1)]
+    df['Satisfaction'] = pd.to_numeric(df[satisfaction].astype(str).str[0], errors='coerce').astype('Int64')
+    df = df.rename(columns={school_type: 'School Type'})
+    df = df.drop(columns=['Respondent ID', satisfaction])
+    df.reset_index(drop=True, inplace=True)
+
+    return df
 
 
 def get_type_ease(df):
