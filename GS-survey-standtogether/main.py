@@ -1,5 +1,6 @@
 import pandas as pd
 import matplotlib.pyplot as plt
+import matplotlib.cm as cm
 
 
 def main():
@@ -41,15 +42,50 @@ def main():
 
     # Are the respondents who are more satisfied with available info the respondents who had more info available?
     available_data = get_availability_info(responses)
+    histogram2d(available_data[['Count', 'Satisfaction']])
+
+
+def histogram2d(df):
+    H, xedges, yedges, _ = plt.hist2d(df['Count'], df['Satisfaction'], bins=(11, 5), cmap='Blues')
+    x_ticks = list(range(int(xedges.min()), int(xedges.max()) + 1))
+    plt.xticks(x_ticks)
+    plt.xlabel('Count')
+    y_ticks = list(range(int(yedges.min()), int(yedges.max()) + 1))
+    plt.yticks(y_ticks)
+    plt.ylabel('Satisfaction')
+    plt.title('2D Histogram of Count vs Satisfaction')
+    plt.colorbar(label='Density')
+    plt.show()
+
+
 
 
 def get_availability_info(responses):
+    og_satisfaction_column = "How satisfied are you with the information available to you about the kinds of schools that you considered for your kid(s)?"
     columns_to_keep = ["Respondent ID",
                        "What information is available to you about K-12 schools? Select all that apply.",
-                       "How satisfied are you with the information available to you about the kinds of schools that you considered for your kid(s)?"] + [
+                       og_satisfaction_column] + [
                           f"Unnamed: {i}" for i in range(52, 61)]
-    df_filtered = responses[columns_to_keep]
-    pass
+    df = responses[columns_to_keep]
+    df = df[df[og_satisfaction_column] != '']
+    # Set the second row as the column names, drop that row, reset index
+    df.columns = df.iloc[0]
+    df = df[1:]
+    df.columns.values[0] = 'Respondent ID'
+    df.columns.values[2] = og_satisfaction_column
+    df.reset_index(drop=True, inplace=True)
+
+    school_info_types = df.columns.tolist()
+    school_info_types.remove('Respondent ID')
+    school_info_types.remove(og_satisfaction_column)
+
+    df['Count'] = df[school_info_types].apply(lambda row: sum(1 for x in row if x != ""), axis=1)
+    df['Satisfaction'] = df[og_satisfaction_column].str[0]
+    df['Count'] = pd.to_numeric(df['Count'], errors='coerce').astype('Int64')
+    df['Satisfaction'] = pd.to_numeric(df['Satisfaction'], errors='coerce').astype('Int64')
+
+
+    return df
 
 
 def bar_graph(df, data_type, bars, title, label_dict=None):
