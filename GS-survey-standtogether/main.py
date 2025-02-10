@@ -41,13 +41,14 @@ def main():
         "Values-based education (e.g., cultural instruction, religious education)": "Values-based instruction"
     }
 
-    if True:
+    if run_everything:
         time_df = responses[["Collector ID", "End Date"]]
         # collector_type_time(time_df, "Week")
         crazyegg_df = time_df[time_df["Collector ID"] == "CrazyEgg"]
         # time_responses(crazyegg_df, "Date")
         # time_responses(crazyegg_df, "Week")
-        box_whisker(crazyegg_df)
+        box_whisker(crazyegg_df, "days")
+        box_whisker(df, "hours")
 
     #  What percent of respondents considered only in-system schools? Considered any out-of-system schools? Considered both in-system and OOS schools?
     if run_everything:
@@ -429,23 +430,42 @@ def time_responses(df, time_frame):
     plt.show()
 
 
-def box_whisker(df):
-    df["Day of Week"] = pd.to_datetime(df["End Date"]).dt.day_name()
-    counts = df.groupby([df["End Date"].dt.date, "Day of Week"]).size().reset_index(name="Response Count")
+def box_whisker(df, group_by):
+    df["End Date"] = pd.to_datetime(df["End Date"])
 
-    boxplot_data = [counts[counts["Day of Week"] == day]["Response Count"] for day in
-                    ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]]
+    if group_by == "days":
+        df["Day of Week"] = df["End Date"].dt.day_name()
+        counts = df.groupby([df["End Date"].dt.date, "Day of Week"]).size().reset_index(name="Response Count")
+        boxplot_data = [counts[counts["Day of Week"] == day]["Response Count"] for day in
+                        ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]]
 
-    # Creating the box-and-whisker plot
+        labels = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+        xlabel = "Day of the Week"
+        title = "Distribution of Response Counts by Day of the Week"
+
+    elif group_by == "hours":
+        df["Hour of Day"] = df["End Date"].dt.hour
+        counts = df.groupby([df["End Date"].dt.date, "Hour of Day"]).size().reset_index(name="Response Count")
+
+        boxplot_data = [counts[counts["Hour of Day"] == hour]["Response Count"] for hour in range(24)]
+
+        labels = [str(hour) for hour in range(24)]
+        xlabel = "Hour of the Day"
+        title = "Distribution of Response Counts by Hour of the Day"
+
+    else:
+        raise ValueError("Invalid value for group_by. Use 'days' or 'hours'.")
+
+    # Create the box-and-whisker plot
     plt.figure(figsize=(10, 6))
     plt.boxplot(boxplot_data,
-                labels=["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+                labels=labels,
                 patch_artist=True, boxprops=dict(facecolor="lightblue", color="blue"),
                 medianprops=dict(color="red"), whiskerprops=dict(color="blue"))
 
     # Add title and labels
-    plt.title("Distribution of Response Counts by Day of the Week", fontsize=14)
-    plt.xlabel("Day of the Week", fontsize=12)
+    plt.title(title, fontsize=14)
+    plt.xlabel(xlabel, fontsize=12)
     plt.ylabel("Response Count", fontsize=12)
     plt.grid(axis="y", linestyle="--", alpha=0.7)
     plt.tight_layout()
