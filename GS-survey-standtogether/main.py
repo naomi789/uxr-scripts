@@ -41,12 +41,13 @@ def main():
         "Values-based education (e.g., cultural instruction, religious education)": "Values-based instruction"
     }
 
-    if run_everything:
+    if True:
         time_df = responses[["Collector ID", "End Date"]]
-        collector_type_time(time_df, "Week")
+        # collector_type_time(time_df, "Week")
         crazyegg_df = time_df[time_df["Collector ID"] == "CrazyEgg"]
-        time_responses(crazyegg_df, "Date")
-        time_responses(crazyegg_df, "Week")
+        # time_responses(crazyegg_df, "Date")
+        # time_responses(crazyegg_df, "Week")
+        box_whisker(crazyegg_df)
 
     #  What percent of respondents considered only in-system schools? Considered any out-of-system schools? Considered both in-system and OOS schools?
     if run_everything:
@@ -425,6 +426,31 @@ def time_responses(df, time_frame):
     plt.grid(True, linestyle="--", alpha=0.6)
     plt.legend()
     plt.tight_layout()
+    plt.show()
+
+
+def box_whisker(df):
+    df["Day of Week"] = pd.to_datetime(df["End Date"]).dt.day_name()
+    counts = df.groupby([df["End Date"].dt.date, "Day of Week"]).size().reset_index(name="Response Count")
+
+    boxplot_data = [counts[counts["Day of Week"] == day]["Response Count"] for day in
+                    ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]]
+
+    # Creating the box-and-whisker plot
+    plt.figure(figsize=(10, 6))
+    plt.boxplot(boxplot_data,
+                labels=["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+                patch_artist=True, boxprops=dict(facecolor="lightblue", color="blue"),
+                medianprops=dict(color="red"), whiskerprops=dict(color="blue"))
+
+    # Add title and labels
+    plt.title("Distribution of Response Counts by Day of the Week", fontsize=14)
+    plt.xlabel("Day of the Week", fontsize=12)
+    plt.ylabel("Response Count", fontsize=12)
+    plt.grid(axis="y", linestyle="--", alpha=0.7)
+    plt.tight_layout()
+
+    # Display the plot
     plt.show()
 
 
