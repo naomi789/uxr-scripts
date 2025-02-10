@@ -41,6 +41,15 @@ def main():
         "Values-based education (e.g., cultural instruction, religious education)": "Values-based instruction"
     }
 
+
+    if run_everything:
+        time_df = responses[["Collector ID", "End Date"]]
+        collector_type_time(time_df, "Week")
+        crazyegg_df = time_df[time_df["Collector ID"] == "CrazyEgg"]
+        time_responses(crazyegg_df, "Date")
+        time_responses(crazyegg_df, "Week")
+
+
     #  What percent of respondents considered only in-system schools? Considered any out-of-system schools? Considered both in-system and OOS schools?
     if run_everything:
         considered_schools = get_considered_school_types(responses)
@@ -369,6 +378,9 @@ def clean_data(df, collector_dict, collectors_to_drop):
     df.reset_index(drop=True, inplace=True)
     df = df.fillna("")
 
+    # Convert to date time format
+    df["End Date"] = pd.to_datetime(df["End Date"])
+
     return df
 
 
@@ -378,6 +390,42 @@ def csv_to_df(file_path):
     except Exception as e:
         print(f"Error reading {file_path}: {e}")
         return None
+
+
+def collector_type_time(df, time_frame):
+    if time_frame == "Week":
+        df["Week"] = df["End Date"].dt.to_period("W")
+
+    grouped = df.groupby([time_frame, "Collector ID"]).size().reset_index(name="Count")
+    pivot = grouped.pivot(index=time_frame, columns="Collector ID", values="Count").fillna(0)
+    pivot.plot(kind="bar", stacked=True, figsize=(10, 6))
+    plt.title("Responses by Collector ID Over Time")
+    plt.xlabel(time_frame)
+    plt.ylabel("Count")
+    plt.xticks(rotation=45)
+    plt.legend(title="Collector ID")
+    plt.tight_layout()
+    plt.show()
+
+def time_responses(df, time_frame):
+    if time_frame == "Date":
+        df[time_frame] = df["End Date"].dt.date
+    elif time_frame == "Week":
+        df[time_frame] = df["End Date"].dt.to_period("W").dt.start_time
+    else:
+        raise ValueError("Invalid time_frame. Choose either 'Daily' or 'Weekly'.")
+    counts = df.groupby(time_frame).size().reset_index(name="Count")
+
+    plt.figure(figsize=(10, 6))
+    plt.plot(counts.iloc[:, 0], counts["Count"], marker="o", label=f"Responses ({time_frame})")
+    plt.title(f"Count of Responses ({time_frame})")
+    plt.xlabel("Time")
+    plt.ylabel("Count of Responses")
+    plt.xticks(rotation=45)
+    plt.grid(True, linestyle="--", alpha=0.6)
+    plt.legend()
+    plt.tight_layout()
+    plt.show()
 
 
 main()
