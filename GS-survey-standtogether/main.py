@@ -41,14 +41,12 @@ def main():
         "Values-based education (e.g., cultural instruction, religious education)": "Values-based instruction"
     }
 
-
     if run_everything:
         time_df = responses[["Collector ID", "End Date"]]
         collector_type_time(time_df, "Week")
         crazyegg_df = time_df[time_df["Collector ID"] == "CrazyEgg"]
         time_responses(crazyegg_df, "Date")
         time_responses(crazyegg_df, "Week")
-
 
     #  What percent of respondents considered only in-system schools? Considered any out-of-system schools? Considered both in-system and OOS schools?
     if run_everything:
@@ -97,7 +95,8 @@ def main():
         y = 'Satisfaction'
         type_satisfaction[x] = pd.Categorical(type_satisfaction['School Type']).codes
         categorical_key = dict(enumerate(pd.Categorical(type_satisfaction['School Type']).categories))
-        histogram2d(type_satisfaction[[x, y]], x, y, '2D Histogram of School Type vs Satisfaction with Info', categorical_key)
+        histogram2d(type_satisfaction[[x, y]], x, y, '2D Histogram of School Type vs Satisfaction with Info',
+                    categorical_key)
 
 
 def get_type_satisfaction(responses):
@@ -406,6 +405,7 @@ def collector_type_time(df, time_frame):
     plt.legend(title="Collector ID")
     plt.tight_layout()
     plt.show()
+
 
 def time_responses(df, time_frame):
     if time_frame == "Date":
