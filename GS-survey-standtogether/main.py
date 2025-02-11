@@ -73,7 +73,7 @@ def main():
         histogram2d(available_data[[x, y]], x, y, '2D Histogram of Count vs Satisfaction')
 
     #  Comparing school type vs. reason to pick school type
-    if run_everything:
+    if run_everything:  # run_everything
         school_type_and_reasons = get_school_type_and_reasons(responses)
         # Given reason(s), what school type was picked?
         given_type_graph_reasons(school_type_and_reasons, short_school_types_dict)
@@ -99,6 +99,123 @@ def main():
         categorical_key = dict(enumerate(pd.Categorical(type_satisfaction['School Type']).categories))
         histogram2d(type_satisfaction[[x, y]], x, y, '2D Histogram of School Type vs Satisfaction with Info',
                     categorical_key)
+
+    # Make the original graphs, but with cleaned data
+    update_survey_monkey_graphs(responses, short_school_types_dict)
+
+
+def update_survey_monkey_graphs(df, short_school_types_dict):
+    survey_monkey_short_titles = {
+        "Which of the following kinds of schools and learning opportunities did you consider/are you considering for you kid(s)? Select all that apply.": "types of schools considered",
+        "Aside from the options you considered, does your community have any other kinds of K-12 schools or learning opportunities that you are aware of? Select all that apply.": "other available schools",
+        "What kind of school does your K-12 aged child currently attend? If you have more than one K-12 aged children, pick the option that applies for your oldest child.": "selected school",
+        "What were the primary reasons you selected this kind of school? If you have more than one K-12 aged child, please think about your oldest.": "primary reasons",
+        "How was your experience PICKING this school? If you have more than one K-12 aged child, please think about your oldest.": "ease picking",
+        "Do you feel confident that you made the right choice? If you have more than one K-12 aged child, please think about your oldest.": "confidence picking",
+        "What information is available to you about K-12 schools? Select all that apply.": "available info",
+        "How satisfied are you with the information available to you about the kinds of schools that you considered for your kid(s)?": "satisfaction info",
+        "'What is your impression of the following kinds of K-12 schools:": "impression school types",
+        "Do any of your K-12 aged kids identify as part of a marginalized community at school? If so, which ones?": "marginalized community",
+        "Which of the following kinds of K-12 accommodations have you navigated with your kids (s)? Select all that apply": "accomodations"
+    }
+    survey_monkey_groupings = {
+        "types of schools considered": [
+            'Which of the following kinds of schools and learning opportunities did you consider/are you considering for you kid(s)? Select all that apply.',
+            'Unnamed: 11', 'Unnamed: 12', 'Unnamed: 13', 'Unnamed: 14', 'Unnamed: 15', 'Unnamed: 16', 'Unnamed: 17',
+            'Unnamed: 18', 'Unnamed: 19', 'Unnamed: 20', 'Unnamed: 21', ],
+        "other available schools": [
+            'Aside from the options you considered, does your community have any other kinds of K-12 schools or learning opportunities that you are aware of? Select all that apply.',
+            'Unnamed: 23', 'Unnamed: 24', 'Unnamed: 25', 'Unnamed: 26',
+            'Unnamed: 27', 'Unnamed: 28', 'Unnamed: 29', 'Unnamed: 30',
+            'Unnamed: 31', 'Unnamed: 32', 'Unnamed: 33', 'Unnamed: 34',
+            'Unnamed: 35'],
+        "primary reasons": [
+            'What were the primary reasons you selected this kind of school? If you have more than one K-12 aged child, please think about your oldest.',
+            'Unnamed: 38', 'Unnamed: 39', 'Unnamed: 40', 'Unnamed: 41',
+            'Unnamed: 42', 'Unnamed: 43', 'Unnamed: 44', 'Unnamed: 45',
+            'Unnamed: 46', 'Unnamed: 47', 'Unnamed: 48'],
+        "available info": ['What information is available to you about K-12 schools? Select all that apply.',
+                           'Unnamed: 52', 'Unnamed: 53', 'Unnamed: 54', 'Unnamed: 55',
+                           'Unnamed: 56', 'Unnamed: 57', 'Unnamed: 58', 'Unnamed: 59',
+                           'Unnamed: 60'],
+        "impression school types": ['What is your impression of the following kinds of K-12 schools:',
+                                    'Unnamed: 63', 'Unnamed: 64', 'Unnamed: 65', 'Unnamed: 66',
+                                    'Unnamed: 67', 'Unnamed: 68', 'Unnamed: 69', 'Unnamed: 70',
+                                    'Unnamed: 71', 'Unnamed: 72'],
+        "marginalized community": [
+            'Do any of your K-12 aged kids identify as part of a marginalized community at school? If so, which ones?',
+            'Unnamed: 76', 'Unnamed: 77', 'Unnamed: 78', 'Unnamed: 79',
+            'Unnamed: 80', 'Unnamed: 81', 'Unnamed: 82', 'Unnamed: 83',
+            'Unnamed: 84', 'Unnamed: 85'],
+        "accomodations": [
+            'Which of the following kinds of K-12 accommodations have you navigated with your kids (s)? Select all that apply.',
+            'Unnamed: 87', 'Unnamed: 88', 'Unnamed: 89', 'Unnamed: 90',
+            'Unnamed: 91', 'Unnamed: 92', 'Unnamed: 93']
+
+    }
+    for long_title, short_title in survey_monkey_short_titles.items():
+        value = survey_monkey_groupings.get(short_title, None)
+        print(f"about to graph: '{short_title}'")
+        if value is None:  # then there is only one column of data
+            filtered = df[df[long_title] != ""]
+            filtered = filtered[1:]
+            count_df = filtered[long_title].value_counts().reset_index()
+            count_df.columns = [short_title, "Count"]
+            count_df['Percentage'] = (count_df['Count'] / count_df['Count'].sum() * 100).round(1)
+
+            count_df['Percentage'] = pd.to_numeric(count_df['Percentage'])
+
+            count_df = count_df.sort_values(short_title, ascending=True)
+            count_df[short_title] = count_df[short_title].replace("[Insert text from Other]", "Other")
+            if short_title == "selected school":
+                bar_graph3(count_df, short_title, "kinds of schools",
+                           "percent of respondents who picked different school types", short_school_types_dict)
+            elif short_title == "confidence picking":
+                bar_graph3(count_df, short_title, "level of confidence",
+                           "percent of respondents who reported certain levels of confidence that they made the right choice",
+                           None)
+            elif short_title == "ease picking":
+                bar_graph3(count_df, short_title, "ease of selecting a school",
+                           "percent of respondents who felt their choice was easy/hard",
+                           None)
+
+            elif short_title == "satisfaction info":
+                bar_graph3(count_df, short_title, "satisfaction with amount of info",
+                           "percent of respondents who were satisfied/dissatisfied",
+                           None)
+
+
+
+
+def bar_graph3(counts_df, graph_this, x_axis_title, graph_title, label_dict):
+    fig, ax = plt.subplots()
+    bars = plt.bar(counts_df[graph_this], counts_df['Percentage'])
+    plt.title(graph_title)
+    plt.xlabel(x_axis_title)
+    plt.ylabel('Percentage (%)')
+    plt.ylim(0, 100)
+
+    if label_dict == None:
+        ax.set_xticklabels([label for label in counts_df[graph_this]], rotation=90, va='top',
+                           fontsize=10,
+                           ha='center')
+    else:
+        ax.set_xticklabels([label_dict.get(label, label) for label in counts_df[graph_this]], rotation=90, va='top',
+                           fontsize=10,
+                           ha='center')
+    ax.tick_params(axis='x', which='both', length=0, pad=-250)
+
+    # for index, value in enumerate(counts_df['Percentage']):
+    #     plt.text(index, value + 1, f"{value}%", ha='center', fontsize=10)
+    #     print(index, value)
+
+    for bar in bars:
+        yval = bar.get_height()  # Get the height (percentage) of the bar
+        ax.text(bar.get_x() + bar.get_width() / 2, yval + 1,  # Position the text above the bar
+                f'{yval}%', ha='center', va='bottom', fontsize=10)
+
+    plt.tight_layout()
+    plt.show()
 
 
 def get_type_satisfaction(responses):
@@ -157,22 +274,21 @@ def given_reasons_graph_type(school_type_and_reasons, label_dict):
                     reason_counts[column] = count
 
         reason_df = pd.DataFrame(list(reason_counts.items()), columns=['Reason', 'Count'])
-        print(reason_df.index)
 
         reason_df = reason_df.set_index('Reason')
         bar_graph2(reason_df, x_axis_title, school_type, label_dict)
 
 
-def bar_graph2(counts_df, x_axis_title, column, label_dict):
+def bar_graph2(counts_df, x_axis_title, graph_title, label_dict):
     counts_df['Percentage'] = (counts_df['Count'] / counts_df['Count'].sum() * 100).round(1)
     counts_df['Percentage'] = pd.to_numeric(counts_df['Percentage'])
     fig, ax = plt.subplots()
     plt.bar(counts_df.index, counts_df['Percentage'])
     plt.ylim(0, 100)
-    plt.title(column, fontsize=16)
+    plt.title(graph_title, fontsize=16)
     plt.xlabel(x_axis_title, fontsize=12)
     plt.ylabel('Percentage (%)', fontsize=12)
-    print(counts_df.index)
+    # print(label_dict)
     ax.set_xticklabels([label_dict.get(label, label) for label in counts_df.index], rotation=90, va='top',
                        fontsize=10,
                        ha='center')
@@ -180,6 +296,7 @@ def bar_graph2(counts_df, x_axis_title, column, label_dict):
 
     for index, value in enumerate(counts_df['Percentage']):
         plt.text(index, value + 1, f"{value}%", ha='center', fontsize=10)
+        print(index, value)
     plt.tight_layout()
     plt.show()
 
