@@ -1,8 +1,9 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
-from collections import defaultdict
-from matplotlib.ticker import MaxNLocator
+from pyzipcode import ZipCodeDatabase
+import folium
+
 
 
 def main():
@@ -106,10 +107,44 @@ def main():
         update_survey_monkey_graphs(responses, short_school_types_dict)
 
     # TODO zip code graphs
+    zcdb = ZipCodeDatabase()
+    long_title = 'What is your zip code?'
+    responses['is_zip'] = responses[long_title].apply(lambda value: bool(zcdb.get(value, None)))
+    responses['valid zips'] = responses.apply(lambda row: row[long_title] if row['is_zip'] else np.nan, axis=1)
+    valid_zips = responses[responses['valid zips'].notna()]['valid zips']
+
+    lat_lon_df = valid_zips.apply(lambda zip_code: get_lat_long(zip_code, zcdb)).apply(pd.Series)
+    lat_lon_df.columns = ['Latitude', 'Longitude']
+
+    # Combine lat/lon with original data
+    responses_with_lat_lon = pd.concat([responses, lat_lon_df], axis=1)
+
+    # Filter out rows with missing lat/lon values
+    valid_locations = responses_with_lat_lon.dropna(subset=['Latitude', 'Longitude'])
+
+    # Create a map centered around the first location
+    m = folium.Map(location=[valid_locations['Latitude'].iloc[0], valid_locations['Longitude'].iloc[0]], zoom_start=6)
+
+    # Add markers for each location
+    for _, row in valid_locations.iterrows():
+        folium.Marker([row['Latitude'], row['Longitude']], popup=row[long_title]).add_to(m)
+
+    # Show map
+    m.save('zip_code_map.html')
+
+
 
     # TODO: [STILL NEED TO GRAPH: Participants who picked X school type felt ABC about school types]
 
     # TODO: [STILL NEED TO GRAPH: any correlation between school type picked & confidence in choice?]
+
+
+def get_lat_long(zip_code, zcdb):
+    try:
+        zip_info = zcdb[zip_code]
+        return zip_info.latitude, zip_info.longitude
+    except:
+        return None, None
 
 
 def update_survey_monkey_graphs(original_df, short_school_types_dict):
