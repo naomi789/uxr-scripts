@@ -102,7 +102,14 @@ def main():
                     categorical_key)
 
     # Make the original graphs, but with cleaned data
-    update_survey_monkey_graphs(responses, short_school_types_dict)
+    if run_everything:
+        update_survey_monkey_graphs(responses, short_school_types_dict)
+
+    # TODO zip code graphs
+
+    # TODO: [STILL NEED TO GRAPH: Participants who picked X school type felt ABC about school types]
+
+    # TODO: [STILL NEED TO GRAPH: any correlation between school type picked & confidence in choice?]
 
 
 def update_survey_monkey_graphs(original_df, short_school_types_dict):
@@ -158,7 +165,6 @@ def update_survey_monkey_graphs(original_df, short_school_types_dict):
         df = original_df
         value = survey_monkey_groupings.get(short_title, None)
         if value is None:
-            continue  # TODO REMOVE THIS
             # then there is only one column of data
             filtered = df[df[long_title] != ""]
             filtered = filtered[1:]
