@@ -113,9 +113,34 @@ def main():
         df_type_impression = get_choice_impression(responses)
         visualize_type_impression(df_type_impression, "selected school", short_school_types_dict)
 
-    # TODO: [STILL NEED TO GRAPH: any correlation between school type picked & confidence in choice?]
-    long_question = "Do you feel confident that you made the right choice? If you have more than one K-12 aged child, please think about your oldest."
-    short_question = "confidence picking"
+    if run_everything:
+        consider_confidence_levels(responses)
+
+
+def consider_confidence_levels(responses, short_school_types_dict):
+    long_confidence = "Do you feel confident that you made the right choice? If you have more than one K-12 aged child, please think about your oldest."
+    long_choice = "What kind of school does your K-12 aged child currently attend? If you have more than one K-12 aged children, pick the option that applies for your oldest child."
+    df_type_confidence = get_data_type_confidence(responses, long_confidence, long_choice)
+    for school_type in short_school_types_dict.keys():
+        filtered_df = df_type_confidence[df_type_confidence[long_choice] == school_type]
+        df_counts = filtered_df[long_confidence].value_counts().reset_index()
+        df_counts.columns = [long_confidence, 'Count']
+        row_count = len(filtered_df)
+        df_counts['Percentage'] = (df_counts['Count'] / row_count * 100).round(1)
+        df_counts['Percentage'] = pd.to_numeric(df_counts['Percentage'])
+
+        bar_graph3(df_counts, long_confidence, "level of confidence",
+                   f"confidence in their choice of '{school_type}'",
+                   short_school_types_dict)
+
+def get_data_type_confidence(responses, long_confidence, long_choice):
+    df = responses[[long_confidence, long_choice]]
+    df = df[1:]
+    # drop rows with an empty string in either column
+    df = df[df[long_confidence] != ""]
+    df = df[df[long_choice] != ""]
+    df.reset_index(drop=True, inplace=True)
+    return df
 
 
 def visualize_type_impression(df, col_name, label_dict):
