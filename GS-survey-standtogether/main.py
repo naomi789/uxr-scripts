@@ -155,12 +155,13 @@ def impression_viz(df, school_type, graph_title, impression, label_dict):
 
 def get_choice_impression(df):
     long_choice = "What kind of school does your K-12 aged child currently attend? If you have more than one K-12 aged children, pick the option that applies for your oldest child."
+    short_choice = "selected school"
     long_impression = "What is your impression of the following kinds of K-12 schools:"
     selected_columns = ['Respondent ID', long_choice, long_impression,
                                     'Unnamed: 63', 'Unnamed: 64', 'Unnamed: 65', 'Unnamed: 66',
                                     'Unnamed: 67', 'Unnamed: 68', 'Unnamed: 69', 'Unnamed: 70',
                                     'Unnamed: 71', 'Unnamed: 72']
-    short_choice = "selected school"
+
     short_impression = "impression school types"
     small_df = df.loc[:, df.columns.isin(selected_columns)]
     # Set the second row as the column names, drop that row, reset index
