@@ -1,5 +1,6 @@
 import pandas as pd
 import matplotlib.pyplot as plt
+import numpy as np
 from collections import defaultdict
 from matplotlib.ticker import MaxNLocator
 
@@ -104,7 +105,7 @@ def main():
     update_survey_monkey_graphs(responses, short_school_types_dict)
 
 
-def update_survey_monkey_graphs(df, short_school_types_dict):
+def update_survey_monkey_graphs(original_df, short_school_types_dict):
     survey_monkey_short_titles = {
         "Which of the following kinds of schools and learning opportunities did you consider/are you considering for you kid(s)? Select all that apply.": "types of schools considered",
         "Aside from the options you considered, does your community have any other kinds of K-12 schools or learning opportunities that you are aware of? Select all that apply.": "other available schools",
@@ -154,9 +155,11 @@ def update_survey_monkey_graphs(df, short_school_types_dict):
 
     }
     for long_title, short_title in survey_monkey_short_titles.items():
+        df = original_df
         value = survey_monkey_groupings.get(short_title, None)
-        print(f"about to graph: '{short_title}'")
-        if value is None:  # then there is only one column of data
+        if value is None:
+            continue  # TODO REMOVE THIS
+            # then there is only one column of data
             filtered = df[df[long_title] != ""]
             filtered = filtered[1:]
             count_df = filtered[long_title].value_counts().reset_index()
@@ -181,10 +184,98 @@ def update_survey_monkey_graphs(df, short_school_types_dict):
 
             elif short_title == "satisfaction info":
                 bar_graph3(count_df, short_title, "satisfaction with amount of info",
-                           "percent of respondents who were satisfied/dissatisfied",
+                           "how  satisfied participants were with the amount of info",
                            None)
+        else:
+            print(f"about to graph: '{short_title}'")
+            columns_to_keep = survey_monkey_groupings[short_title]
+            df = df[columns_to_keep]
+            df.columns = df.iloc[0]
+            df = df[1:]
+            df = df[df.apply(lambda row: not all(row == ''), axis=1)]
+            df.reset_index(drop=True, inplace=True)
+            if short_title == "impression school types":
+                grid_response_graph(df, short_title, short_school_types_dict)
+            else:
+                calculate_count_percentage(df, short_title, short_school_types_dict)
 
 
+def grid_response_graph(df, short_title, label_dict):
+    unique_responses = df.stack().unique()
+    response_counts = {}
+    for response in unique_responses:
+        response_counts[response] = (df == response).sum()
+    plot_data = pd.DataFrame(response_counts)
+    plot_data = plot_data[sorted(plot_data.columns)]
+
+    cmap = plt.get_cmap('Blues')
+
+    # Normalize the color range to match the number of categories
+    norm = plt.Normalize(vmin=0, vmax=len(plot_data.columns) - 1)
+
+    # Create a list of colors using the colormap
+    colors = [cmap(norm(i)) for i in range(len(plot_data.columns))]
+
+    ax = plot_data.plot(kind='bar', figsize=(10, 6), width=0.8, color=colors)
+    ax.set_xlabel('School Types')
+    ax.set_ylabel('Number of Responses')
+    ax.set_title('Responses for Different School Types')
+    ax.set_xticklabels([label_dict.get(label, label) for label in plot_data.index], rotation=90, va='top',
+                       fontsize=10,
+                       ha='right')
+    ax.tick_params(axis='x', which='both', length=0, pad=-350)
+
+    plt.tight_layout()
+    plt.show()
+
+
+def calculate_count_percentage(df, subject, short_school_types_dict):
+    count_series = (df != "").sum()
+    count_df = count_series.to_frame()
+    count_df.columns = ["Count"]
+    count_df['Percentage'] = (count_df['Count'] / count_df['Count'].sum() * 100).round(1)
+    count_df['Percentage'] = pd.to_numeric(count_df['Percentage'])
+    count_df[subject] = count_df.index
+    count_df = count_df.sort_values(subject, ascending=True)
+    count_df.reset_index(drop=True, inplace=True)
+    if subject == "types of schools considered":
+        # def bar_graph3(counts_df, graph_this, x_axis_title, graph_title, label_dict):
+        bar_graph3(count_df, subject, "kinds of schools",
+                   "Respondents considered these school types", short_school_types_dict)
+    elif subject == "other available schools":
+        bar_graph3(count_df, subject, "kinds of schools",
+                   "respondents did not consider  these available school types", short_school_types_dict)
+    elif subject == "primary reasons":
+        # create a dict where the key is the values in count_df[subject] and the value up until the open parenthesis, if there is an open parenthesis
+        label_dict = {
+            row[subject]: row[subject].split('(')[0][:-1] if '(' in row[subject] else row[subject]
+            for _, row in count_df.iterrows()
+        }
+        bar_graph3(count_df, subject, "reasons",
+                   "respondents' reasons for picking their kids' school",
+                   label_dict)
+    elif subject == "available info":
+        label_dict = {
+            row[subject]: row[subject].split('(')[0][:-1] if '(' in row[subject] else row[subject]
+            for _, row in count_df.iterrows()
+        }
+        bar_graph3(count_df, subject, subject,
+                   "information available to respondents",
+                   label_dict)
+    elif subject == "marginalized community":
+        bar_graph3(count_df, subject, subject,
+                   "percent of respondents with kids in marginalized community/ies",
+                   None)
+    elif subject == "accomodations":
+        label_dict = {
+            row[subject]: row[subject].split('(')[0][:-1] if '(' in row[subject] else row[subject]
+            for _, row in count_df.iterrows()
+        }
+        bar_graph3(count_df, subject, subject,
+                   "accomodations",
+                   label_dict)
+    else:
+        print("Unknown error")
 
 
 def bar_graph3(counts_df, graph_this, x_axis_title, graph_title, label_dict):
