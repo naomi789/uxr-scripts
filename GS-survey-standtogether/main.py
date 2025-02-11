@@ -109,12 +109,74 @@ def main():
     if run_everything:
         zip_data_viz(responses)
 
-
-
-
-    # TODO: [STILL NEED TO GRAPH: Participants who picked X school type felt ABC about school types]
+    if run_everything:
+        df_type_impression = get_choice_impression(responses)
+        visualize_type_impression(df_type_impression, "selected school", short_school_types_dict)
 
     # TODO: [STILL NEED TO GRAPH: any correlation between school type picked & confidence in choice?]
+    long_question = "Do you feel confident that you made the right choice? If you have more than one K-12 aged child, please think about your oldest."
+    short_question = "confidence picking"
+
+
+def visualize_type_impression(df, col_name, label_dict):
+    df_answers = df.drop(columns=['Respondent ID'])
+
+    # chart of what public school parents said
+    school_type = "Public schools"
+    df_public = df_answers[df_answers[col_name] == school_type]
+    df_public = df_public.drop(columns=[col_name])
+    grid_response_graph(df_public, col_name, label_dict, f"What parents of students at {school_type} schools said")
+
+    # chart of what non-public school parents said
+    df_non_public = df_answers[df_answers[col_name] != "Public schools"]
+    df_non_public = df_non_public.drop(columns=[col_name])
+    school_type = "Non Public"
+    grid_response_graph(df_non_public, col_name, label_dict, f"What parents of students at {school_type} schools said")
+
+    # chart of what % of users said [some answer] for their impression of each school
+    df_answers = df.drop(columns=['Respondent ID', col_name])
+    for impression in ["1 - Negative", "2 - Neutral", "3 - Positive", "N/A - I don’t know", ]:
+        graph_title = f"Said '{impression}' when asked about their impression of these schools"
+        impression_viz(df_answers, col_name, graph_title, impression, label_dict)
+
+
+def impression_viz(df, school_type, graph_title, impression, label_dict):
+    # Count occurrences of a given impression in each column
+    counts = df.apply(lambda col: col[col == impression].count())
+    df_counts = counts.to_frame().rename(columns={0: 'Count'})
+    row_count = len(df)
+    df_counts['Percentage'] = (df_counts['Count'] / row_count * 100).round(1)
+    df_counts['Percentage'] = pd.to_numeric(df_counts['Percentage'])
+    # create a new column using the index, then re-index
+    df_counts[school_type] = df_counts.index
+    bar_graph3(df_counts, school_type, "kinds of schools",
+               graph_title, label_dict)
+
+
+def get_choice_impression(df):
+    long_choice = "What kind of school does your K-12 aged child currently attend? If you have more than one K-12 aged children, pick the option that applies for your oldest child."
+    long_impression = "What is your impression of the following kinds of K-12 schools:"
+    selected_columns = ['Respondent ID', long_choice, long_impression,
+                                    'Unnamed: 63', 'Unnamed: 64', 'Unnamed: 65', 'Unnamed: 66',
+                                    'Unnamed: 67', 'Unnamed: 68', 'Unnamed: 69', 'Unnamed: 70',
+                                    'Unnamed: 71', 'Unnamed: 72']
+    short_choice = "selected school"
+    short_impression = "impression school types"
+    small_df = df.loc[:, df.columns.isin(selected_columns)]
+    # Set the second row as the column names, drop that row, reset index
+    small_df.columns = small_df.iloc[0]
+    small_df = small_df[1:]
+    small_df.columns.values[0] = 'Respondent ID'
+    small_df.columns.values[1] = short_choice
+
+    # drop rows with 3+ empty strings
+    small_df = small_df[small_df.apply(lambda row: (row == '').sum() < 3, axis=1)]
+    # replace "[Insert text from Other]" with "Other"
+    small_df[short_choice] = small_df[short_choice].replace("[Insert text from Other]", "Other")
+    small_df.reset_index(drop=True, inplace=True)
+    return small_df
+
+
 
 
 def zip_data_viz(responses):
@@ -240,12 +302,12 @@ def update_survey_monkey_graphs(original_df, short_school_types_dict):
             df = df[df.apply(lambda row: not all(row == ''), axis=1)]
             df.reset_index(drop=True, inplace=True)
             if short_title == "impression school types":
-                grid_response_graph(df, short_title, short_school_types_dict)
+                grid_response_graph(df, short_title, short_school_types_dict, "Responses for Different School Types")
             else:
                 calculate_count_percentage(df, short_title, short_school_types_dict)
 
 
-def grid_response_graph(df, short_title, label_dict):
+def grid_response_graph(df, short_title, label_dict, title):
     unique_responses = df.stack().unique()
     response_counts = {}
     for response in unique_responses:
@@ -263,13 +325,14 @@ def grid_response_graph(df, short_title, label_dict):
 
     ax = plot_data.plot(kind='bar', figsize=(10, 6), width=0.8, color=colors)
     ax.set_xlabel('School Types')
-    ax.set_ylabel('Number of Responses')
-    ax.set_title('Responses for Different School Types')
+    ax.set_ylabel('Percent of Responses')
+    ax.set_title(title)
     ax.set_xticklabels([label_dict.get(label, label) for label in plot_data.index], rotation=90, va='top',
                        fontsize=10,
                        ha='right')
     ax.tick_params(axis='x', which='both', length=0, pad=-350)
 
+    ax.set_ylim(0, 100)
     plt.tight_layout()
     plt.show()
 
