@@ -106,7 +106,18 @@ def main():
     if run_everything:
         update_survey_monkey_graphs(responses, short_school_types_dict)
 
-    # TODO zip code graphs
+    if run_everything:
+        zip_data_viz(responses)
+
+
+
+
+    # TODO: [STILL NEED TO GRAPH: Participants who picked X school type felt ABC about school types]
+
+    # TODO: [STILL NEED TO GRAPH: any correlation between school type picked & confidence in choice?]
+
+
+def zip_data_viz(responses):
     zcdb = ZipCodeDatabase()
     long_title = 'What is your zip code?'
     responses['is_zip'] = responses[long_title].apply(lambda value: bool(zcdb.get(value, None)))
@@ -131,13 +142,6 @@ def main():
 
     # Show map
     m.save('zip_code_map.html')
-
-
-
-    # TODO: [STILL NEED TO GRAPH: Participants who picked X school type felt ABC about school types]
-
-    # TODO: [STILL NEED TO GRAPH: any correlation between school type picked & confidence in choice?]
-
 
 def get_lat_long(zip_code, zcdb):
     try:
