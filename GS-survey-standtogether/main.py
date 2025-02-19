@@ -42,6 +42,11 @@ def main():
         "Teaching styles or philosophies (e.g., Montessori, Waldorf, unschooling, project-based learning)": "Teaching styles",
         "Values-based education (e.g., cultural instruction, religious education)": "Values-based instruction"
     }
+    confidence_levels = {
+        "Yes, I’m very confident": 3,
+        "Somewhat, I have some doubts": 2,
+        "No, I’m not confident if it was the right decision": 1
+    }
 
     if run_everything:
         time_df = responses[["Collector ID", "End Date"]]
@@ -102,6 +107,16 @@ def main():
         histogram2d(type_satisfaction[[x, y]], x, y, '2D Histogram of School Type vs Satisfaction with Info',
                     categorical_key)
 
+    #  Are respondents who pick a given school type more likely to be more/less confident in their choice?
+    if True:
+        type_confidence = get_type_confidence(responses, confidence_levels)
+        x = 'Numeric School Type'
+        y = 'Confidence'
+        type_confidence[x] = pd.Categorical(type_confidence['School Type']).codes
+        categorical_key = dict(enumerate(pd.Categorical(type_confidence['School Type']).categories))
+        histogram2d(type_confidence[[x, y]], x, y, '2D Histogram of School Type vs Confidence in decision',
+                    categorical_key)
+    pass
     # Make the original graphs, but with cleaned data
     if run_everything:
         update_survey_monkey_graphs(responses, short_school_types_dict)
@@ -441,6 +456,21 @@ def bar_graph3(counts_df, graph_this, x_axis_title, graph_title, label_dict):
 
     plt.tight_layout()
     plt.show()
+
+
+def get_type_confidence(responses, confidence_levels):
+    school_type = 'What kind of school does your K-12 aged child currently attend? If you have more than one K-12 aged children, pick the option that applies for your oldest child.'
+    confidence = "Do you feel confident that you made the right choice? If you have more than one K-12 aged child, please think about your oldest."
+    columns_to_keep = ['Respondent ID', school_type, confidence]
+    df = responses[columns_to_keep]
+    df = df.iloc[1:]  # gets rid of surveymonkey data
+    df = df[df[[school_type, confidence]].apply(lambda row: all(row != ''), axis=1)]
+    df['Confidence'] = df[confidence].map(confidence_levels)
+    df = df.rename(columns={school_type: 'School Type'})
+    df = df.drop(columns=['Respondent ID', confidence])
+    df.reset_index(drop=True, inplace=True)
+
+    return df
 
 
 def get_type_satisfaction(responses):
