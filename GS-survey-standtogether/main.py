@@ -108,7 +108,7 @@ def main():
                     categorical_key)
 
     #  Are respondents who pick a given school type more likely to be more/less confident in their choice?
-    if True:
+    if run_everything:
         type_confidence = get_type_confidence(responses, confidence_levels)
         x = 'Numeric School Type'
         y = 'Confidence'
@@ -116,9 +116,9 @@ def main():
         categorical_key = dict(enumerate(pd.Categorical(type_confidence['School Type']).categories))
         histogram2d(type_confidence[[x, y]], x, y, '2D Histogram of School Type vs Confidence in decision',
                     categorical_key)
-    pass
+
     # Make the original graphs, but with cleaned data
-    if run_everything:
+    if True:
         update_survey_monkey_graphs(responses, short_school_types_dict)
 
     if run_everything:
@@ -382,7 +382,10 @@ def calculate_count_percentage(df, subject, short_school_types_dict):
     count_series = (df != "").sum()
     count_df = count_series.to_frame()
     count_df.columns = ["Count"]
-    count_df['Percentage'] = (count_df['Count'] / count_df['Count'].sum() * 100).round(1)
+    num_responses = (df.apply(lambda row: any(row != ""), axis=1)).sum()
+
+    # count_df['Count'].sum()
+    count_df['Percentage'] = (count_df['Count'] / num_responses * 100).round(1)
     count_df['Percentage'] = pd.to_numeric(count_df['Percentage'])
     count_df[subject] = count_df.index
     count_df = count_df.sort_values(subject, ascending=True)
