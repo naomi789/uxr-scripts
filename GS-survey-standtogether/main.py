@@ -175,7 +175,6 @@ def get_data_type_confidence(responses, long_confidence, long_choice):
 def visualize_type_impression(df, col_name, label_dict):
     df_answers = df.drop(columns=['Respondent ID'])
     # chart what was said overall
-    # TODO: check these numbers
     df_any = df_answers.drop(columns=[col_name])
     grid_response_graph(df_any, col_name, label_dict, f"What parents of students at ANY school said")
 
