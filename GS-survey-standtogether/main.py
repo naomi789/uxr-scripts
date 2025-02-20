@@ -132,7 +132,7 @@ def main():
                     categorical_key)
 
     # Make the original graphs, but with cleaned data
-    if False:
+    if run_everything:
         update_survey_monkey_graphs(responses, short_school_types_dict)
 
     if run_everything:
