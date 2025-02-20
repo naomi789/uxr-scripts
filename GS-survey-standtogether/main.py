@@ -118,13 +118,13 @@ def main():
                     categorical_key)
 
     # Make the original graphs, but with cleaned data
-    if True:
+    if False:
         update_survey_monkey_graphs(responses, short_school_types_dict)
 
     if run_everything:
         zip_data_viz(responses)
 
-    if run_everything:
+    if True:
         df_type_impression = get_choice_impression(responses)
         visualize_type_impression(df_type_impression, "selected school", short_school_types_dict)
 
@@ -160,8 +160,14 @@ def get_data_type_confidence(responses, long_confidence, long_choice):
 
 def visualize_type_impression(df, col_name, label_dict):
     df_answers = df.drop(columns=['Respondent ID'])
+    # chart what was said overall
+    # TODO: check these numbers
+    df_any = df_answers.drop(columns=[col_name])
+    grid_response_graph(df_any, col_name, label_dict, f"What parents of students at ANY school said")
+
 
     # chart of what public school parents said
+
     school_type = "Public schools"
     df_public = df_answers[df_answers[col_name] == school_type]
     df_public = df_public.drop(columns=[col_name])
@@ -355,6 +361,8 @@ def grid_response_graph(df, short_title, label_dict, title):
         response_counts[response] = (df == response).sum()
     plot_data = pd.DataFrame(response_counts)
     plot_data = plot_data[sorted(plot_data.columns)]
+
+    plot_data = plot_data.div(164).mul(100).round(0)
 
     cmap = plt.get_cmap('Blues')
 
