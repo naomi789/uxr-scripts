@@ -59,7 +59,8 @@ def main():
         "Private schools": "private",
         "Public schools": "public",
         "Study abroad or travel-based learning": "OOS",
-        "Other (please specify)": "OOS"
+        "Other (please specify)": "OOS",
+        "[Insert text from Other]": "OOS"
     }
 
     if run_everything:
@@ -95,7 +96,7 @@ def main():
 
     #  Comparing school type vs. reason to pick school type
     if True:  # run_everything
-        school_type_and_reasons = get_school_type_and_reasons(responses)
+        school_type_and_reasons = get_school_type_and_reasons(responses, is_out_of_system)
         # Given reason(s), what school type was picked?
         given_type_graph_reasons(school_type_and_reasons, short_school_types_dict)
         # given school type, what were the reasons?
@@ -178,9 +179,7 @@ def visualize_type_impression(df, col_name, label_dict):
     df_any = df_answers.drop(columns=[col_name])
     grid_response_graph(df_any, col_name, label_dict, f"What parents of students at ANY school said")
 
-
     # chart of what public school parents said
-
     school_type = "Public schools"
     df_public = df_answers[df_answers[col_name] == school_type]
     df_public = df_public.drop(columns=[col_name])
@@ -581,8 +580,9 @@ def bar_graph2(counts_df, x_axis_title, graph_title, label_dict):
     plt.show()
 
 
-def get_school_type_and_reasons(responses):
+def get_school_type_and_reasons(responses, is_out_of_system):
     school_type = 'What kind of school does your K-12 aged child currently attend? If you have more than one K-12 aged children, pick the option that applies for your oldest child.'
+    short_school_type = 'School Type'
     reasons = 'What were the primary reasons you selected this kind of school? If you have more than one K-12 aged child, please think about your oldest.'
     columns_to_keep = ["Respondent ID", school_type,
                        reasons] + [
@@ -593,10 +593,14 @@ def get_school_type_and_reasons(responses):
     df.columns = df.iloc[0]
     df = df[1:]
     df.columns.values[0] = 'Respondent ID'
-    df.columns.values[1] = 'School Type'
+    df.columns.values[1] = short_school_type
     df = df.drop(columns=['Respondent ID'])
     df = df.drop(columns=['Other (please specify)'])
     df.reset_index(drop=True, inplace=True)
+
+    # ALTERNATIVELY, cast OOS school types (like homeschooling) to the string OOS
+    df[short_school_type] = df[short_school_type].replace(is_out_of_system)
+    # df[short_school_type] = df[short_school_type].replace("[Insert text from Other]", "other")
 
     return df
 
