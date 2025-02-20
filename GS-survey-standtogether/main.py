@@ -355,6 +355,7 @@ def update_survey_monkey_graphs(original_df, short_school_types_dict):
 
 
 def grid_response_graph(df, short_title, label_dict, title):
+    num_responses = len(df)
     unique_responses = df.stack().unique()
     response_counts = {}
     for response in unique_responses:
@@ -362,7 +363,7 @@ def grid_response_graph(df, short_title, label_dict, title):
     plot_data = pd.DataFrame(response_counts)
     plot_data = plot_data[sorted(plot_data.columns)]
 
-    plot_data = plot_data.div(164).mul(100).round(0)
+    plot_data = plot_data.div(num_responses).mul(100).round(0)
 
     cmap = plt.get_cmap('Blues')
 
