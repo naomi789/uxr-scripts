@@ -537,6 +537,11 @@ def given_type_graph_reasons(school_type_and_reasons, label_dict):
         counts_df = pd.DataFrame(counts)
         counts_df = counts_df.rename_axis(x_axis_title).rename(
             columns={x_axis_title: 'Count'})
+
+        num_responses = counts_df['Count'].sum()
+        counts_df['Percentage'] = (counts_df['Count'] / num_responses * 100).round(1)
+        counts_df['Percentage'] = pd.to_numeric(counts_df['Percentage'])
+
         bar_graph2(counts_df, x_axis_title, reason, label_dict)
 
 
@@ -545,6 +550,7 @@ def given_reasons_graph_type(school_type_and_reasons, label_dict):
     school_types = school_type_and_reasons['School Type'].unique()
     for school_type in school_types:
         filtered_df = school_type_and_reasons[school_type_and_reasons['School Type'] == school_type]
+        num_responses = len(filtered_df)
         reason_counts = {}
         for column in filtered_df.columns:
             if column != 'School Type':
@@ -555,12 +561,13 @@ def given_reasons_graph_type(school_type_and_reasons, label_dict):
         reason_df = pd.DataFrame(list(reason_counts.items()), columns=['Reason', 'Count'])
 
         reason_df = reason_df.set_index('Reason')
+
+        reason_df['Percentage'] = (reason_df['Count'] / num_responses * 100).round(1)
+        reason_df['Percentage'] = pd.to_numeric(reason_df['Percentage'])
         bar_graph2(reason_df, x_axis_title, school_type, label_dict)
 
 
 def bar_graph2(counts_df, x_axis_title, graph_title, label_dict):
-    counts_df['Percentage'] = (counts_df['Count'] / counts_df['Count'].sum() * 100).round(1)
-    counts_df['Percentage'] = pd.to_numeric(counts_df['Percentage'])
     fig, ax = plt.subplots()
     plt.bar(counts_df.index, counts_df['Percentage'])
     plt.ylim(0, 100)
