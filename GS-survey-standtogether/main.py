@@ -47,6 +47,20 @@ def main():
         "Somewhat, I have some doubts": 2,
         "No, I’m not confident if it was the right decision": 1
     }
+    is_out_of_system = {
+        "Apprenticeship program": "OOS",
+        "Charter schools": "charter",
+        "Collaborative learning center": "OOS",
+        "Collegiate model school (e.g., college-level classes, dual-enrollment)": "OOS",
+        "Homeschool, homeschooling collective": "OOS",
+        "Hybrid school, online school": "OOS",
+        "Independent study program": "OOS",
+        "Learning pod, microschool, one-room schoolhouse": "OOS",
+        "Private schools": "private",
+        "Public schools": "public",
+        "Study abroad or travel-based learning": "OOS",
+        "Other (please specify)": "OOS"
+    }
 
     if run_everything:
         time_df = responses[["Collector ID", "End Date"]]
@@ -59,7 +73,7 @@ def main():
 
     #  What percent of respondents considered only in-system schools? Considered any out-of-system schools? Considered both in-system and OOS schools?
     if run_everything:
-        considered_schools = get_considered_school_types(responses)
+        considered_schools = get_considered_school_types(responses, is_out_of_system)
         bar_graph(considered_schools, 'bool', ["only OOS", "only IS", "both"],
                   'Percentage of respondents who considered different school types')
 
@@ -80,7 +94,7 @@ def main():
         histogram2d(available_data[[x, y]], x, y, '2D Histogram of Count vs Satisfaction')
 
     #  Comparing school type vs. reason to pick school type
-    if run_everything:  # run_everything
+    if True:  # run_everything
         school_type_and_reasons = get_school_type_and_reasons(responses)
         # Given reason(s), what school type was picked?
         given_type_graph_reasons(school_type_and_reasons, short_school_types_dict)
@@ -124,7 +138,7 @@ def main():
     if run_everything:
         zip_data_viz(responses)
 
-    if True:
+    if run_everything:
         df_type_impression = get_choice_impression(responses)
         visualize_type_impression(df_type_impression, "selected school", short_school_types_dict)
 
@@ -685,7 +699,7 @@ def get_available_schools(responses):
     return df_merged
 
 
-def get_considered_school_types(responses):
+def get_considered_school_types(responses, is_out_of_system):
     selected_columns = [
                            "Which of the following kinds of schools and learning opportunities did you consider/are you considering for you kid(s)? Select all that apply."] + [
                            f"Unnamed: {i}" for i in range(11, 22)] + ["Respondent ID"]
@@ -697,21 +711,6 @@ def get_considered_school_types(responses):
     small_df.columns.values[0] = 'Respondent ID'
 
     small_df.reset_index(drop=True, inplace=True)
-
-    is_out_of_system = {
-        "Apprenticeship program": "OOS",
-        "Charter schools": "charter",
-        "Collaborative learning center": "OOS",
-        "Collegiate model school (e.g., college-level classes, dual-enrollment)": "OOS",
-        "Homeschool, homeschooling collective": "OOS",
-        "Hybrid school, online school": "OOS",
-        "Independent study program": "OOS",
-        "Learning pod, microschool, one-room schoolhouse": "OOS",
-        "Private schools": "private",
-        "Public schools": "public",
-        "Study abroad or travel-based learning": "OOS",
-        "Other (please specify)": "OOS"
-    }
 
     # all_schools = df_selected.apply(lambda row: row.tolist(), axis=1)
     all_schools = small_df.drop(columns=['Respondent ID']).apply(lambda row: row.tolist(), axis=1)
