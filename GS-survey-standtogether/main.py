@@ -7,7 +7,7 @@ import folium
 
 
 def main():
-    run_everything = True
+    run_everything = False
     # Convert CSVs to DataFrames
     collectors = csv_to_df("CSV/CollectorList.csv")
     collector_dict = collectors.set_index("CollectorID")["Title"].to_dict()
@@ -83,10 +83,8 @@ def main():
     if run_everything:
         available_schools = get_available_schools(responses)
         school_types = available_schools.columns.tolist()
-        school_types.remove("Respondent ID")
-        school_types.remove("None of the above")
         bar_graph(available_schools, 'strings', school_types,
-                  "Percentage of respondents who reported this school type was available", short_school_types_dict)
+                  "% who reported school types were available (regardless if they considered it)", short_school_types_dict)
 
     #  Are the respondents who are more satisfied with available info the respondents who had more info available?
     if run_everything:
@@ -708,10 +706,13 @@ def get_available_schools(responses):
     small_df = small_df[1:]
     small_df.columns.values[0] = 'Respondent ID'
     small_df.reset_index(drop=True, inplace=True)
-
-    small_df.drop(columns=["Other (please specify)", "[Insert text from Other]"], inplace=True)
-    df_merged = small_df.groupby(small_df.columns, axis=1, sort=False).first()
-
+    small_df.drop(columns=["Other (please specify)", "[Insert text from Other]", "Respondent ID"], inplace=True)
+    small_df = small_df[small_df.iloc[:, -11:].apply(lambda row: row.replace("", pd.NA).count(), axis=1) > 0]
+    temp = small_df.iloc[:, -11:]
+    temp2 = temp[temp.apply(lambda row: row.replace("", pd.NA).count(), axis=1) > 0]
+    df1 = small_df.iloc[:, :11]  # this row & next row will skip the "none" column
+    df2 = small_df.iloc[:, 12:]
+    df_merged = df1 + df2
     return df_merged
 
 
