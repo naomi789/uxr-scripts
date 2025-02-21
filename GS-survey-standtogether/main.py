@@ -7,7 +7,7 @@ import folium
 
 
 def main():
-    run_everything = False
+    run_everything = True
     # Convert CSVs to DataFrames
     collectors = csv_to_df("CSV/CollectorList.csv")
     collector_dict = collectors.set_index("CollectorID")["Title"].to_dict()
@@ -60,7 +60,8 @@ def main():
         "Public schools": "public",
         "Study abroad or travel-based learning": "OOS",
         "Other (please specify)": "OOS",
-        "[Insert text from Other]": "OOS"
+        "[Insert text from Other]": "OOS",
+        "Other": "OOS"
     }
 
     if run_everything:
@@ -95,7 +96,7 @@ def main():
         histogram2d(available_data[[x, y]], x, y, '2D Histogram of Count vs Satisfaction')
 
     #  Comparing school type vs. reason to pick school type
-    if True:  # run_everything
+    if run_everything:  # run_everything
         school_type_and_reasons = get_school_type_and_reasons(responses, is_out_of_system)
         # Given reason(s), what school type was picked?
         given_type_graph_reasons(school_type_and_reasons, short_school_types_dict)
@@ -141,7 +142,7 @@ def main():
 
     if run_everything:
         df_type_impression = get_choice_impression(responses)
-        visualize_type_impression(df_type_impression, "selected school", short_school_types_dict)
+        visualize_type_impression(df_type_impression, "selected school", short_school_types_dict, is_out_of_system)
 
     if run_everything:
         consider_confidence_levels(responses)
@@ -173,23 +174,31 @@ def get_data_type_confidence(responses, long_confidence, long_choice):
     return df
 
 
-def visualize_type_impression(df, col_name, label_dict):
+def visualize_type_impression(df, col_name, label_dict, is_out_of_system):
     df_answers = df.drop(columns=['Respondent ID'])
     # chart what was said overall
     df_any = df_answers.drop(columns=[col_name])
     grid_response_graph(df_any, col_name, label_dict, f"What parents of students at ANY school said")
 
-    # chart of what public school parents said
-    school_type = "Public schools"
-    df_public = df_answers[df_answers[col_name] == school_type]
-    df_public = df_public.drop(columns=[col_name])
-    grid_response_graph(df_public, col_name, label_dict, f"What parents of students at {school_type} schools said")
+    # TODO: start working here
+    df_answers[col_name] = df_answers[col_name].replace(is_out_of_system)
+    # get all unique values from is_out_of_system
+    for school_type in df_answers[col_name].unique():
+        df_filtered = df_answers[df_answers[col_name] == school_type]
+        df_filtered = df_filtered.drop(columns=[col_name])
+        grid_response_graph(df_filtered, col_name, label_dict, f"What parents of students at {school_type} schools said")
+
+    # # chart of what public school parents said
+    # school_type = "Public schools"
+    # df_public = df_answers[df_answers[col_name] == school_type]
+    # df_public = df_public.drop(columns=[col_name])
+    # grid_response_graph(df_public, col_name, label_dict, f"What parents of students at {school_type} schools said")
 
     # chart of what non-public school parents said
-    df_non_public = df_answers[df_answers[col_name] != "Public schools"]
-    df_non_public = df_non_public.drop(columns=[col_name])
-    school_type = "Non Public"
-    grid_response_graph(df_non_public, col_name, label_dict, f"What parents of students at {school_type} schools said")
+    # df_non_public = df_answers[df_answers[col_name] != "Public schools"]
+    # df_non_public = df_non_public.drop(columns=[col_name])
+    # school_type = "Non Public"
+    # grid_response_graph(df_non_public, col_name, label_dict, f"What parents of students at {school_type} schools said")
 
     # chart of what % of users said [some answer] for their impression of each school
     df_answers = df.drop(columns=['Respondent ID', col_name])
@@ -322,6 +331,7 @@ def update_survey_monkey_graphs(original_df, short_school_types_dict):
 
     }
     for long_title, short_title in survey_monkey_short_titles.items():
+        print(f"about to graph: '{short_title}'")
         df = original_df
         value = survey_monkey_groupings.get(short_title, None)
         if value is None:
@@ -353,7 +363,6 @@ def update_survey_monkey_graphs(original_df, short_school_types_dict):
                            "how  satisfied participants were with the amount of info",
                            None)
         else:
-            print(f"about to graph: '{short_title}'")
             columns_to_keep = survey_monkey_groupings[short_title]
             df = df[columns_to_keep]
             df.columns = df.iloc[0]
@@ -414,10 +423,10 @@ def calculate_count_percentage(df, subject, short_school_types_dict):
     if subject == "types of schools considered":
         # def bar_graph3(counts_df, graph_this, x_axis_title, graph_title, label_dict):
         bar_graph3(count_df, subject, "kinds of schools",
-                   "Respondents considered these school types", short_school_types_dict)
+                   "Respondents considered these available school types", short_school_types_dict)
     elif subject == "other available schools":
         bar_graph3(count_df, subject, "kinds of schools",
-                   "respondents did not consider  these available school types", short_school_types_dict)
+                   "respondents did NOT consider these available school types", short_school_types_dict)
     elif subject == "primary reasons":
         # create a dict where the key is the values in count_df[subject] and the value up until the open parenthesis, if there is an open parenthesis
         label_dict = {
@@ -471,7 +480,6 @@ def bar_graph3(counts_df, graph_this, x_axis_title, graph_title, label_dict):
 
     # for index, value in enumerate(counts_df['Percentage']):
     #     plt.text(index, value + 1, f"{value}%", ha='center', fontsize=10)
-    #     print(index, value)
 
     for bar in bars:
         yval = bar.get_height()  # Get the height (percentage) of the bar
@@ -574,7 +582,6 @@ def bar_graph2(counts_df, x_axis_title, graph_title, label_dict):
     plt.title(graph_title, fontsize=16)
     plt.xlabel(x_axis_title, fontsize=12)
     plt.ylabel('Percentage (%)', fontsize=12)
-    # print(label_dict)
     ax.set_xticklabels([label_dict.get(label, label) for label in counts_df.index], rotation=90, va='top',
                        fontsize=10,
                        ha='center')
@@ -582,7 +589,6 @@ def bar_graph2(counts_df, x_axis_title, graph_title, label_dict):
 
     for index, value in enumerate(counts_df['Percentage']):
         plt.text(index, value + 1, f"{value}%", ha='center', fontsize=10)
-        print(index, value)
     plt.tight_layout()
     plt.show()
 
