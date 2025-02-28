@@ -6,6 +6,7 @@ import folium
 
 
 
+
 def main():
     run_everything = False
     # Convert CSVs to DataFrames
@@ -136,7 +137,8 @@ def main():
         update_survey_monkey_graphs(responses, short_school_types_dict)
 
     if run_everything:
-        zip_data_viz(responses)
+        df_zip_city_state = zip_data_viz(responses)
+        df_zip_city_state.to_csv("zip_city_state_data.csv", index=False)
 
     if run_everything:
         df_type_impression = get_choice_impression(responses)
@@ -245,7 +247,7 @@ def get_choice_impression(df):
 
 
 
-def zip_data_viz(responses):
+def zip_data_viz_old(responses):
     zcdb = ZipCodeDatabase()
     long_title = 'What is your zip code?'
     responses['is_zip'] = responses[long_title].apply(lambda value: bool(zcdb.get(value, None)))
@@ -277,6 +279,57 @@ def get_lat_long(zip_code, zcdb):
         return zip_info.latitude, zip_info.longitude
     except:
         return None, None
+
+
+
+
+def get_lat_long_city_state(zip_code, zcdb):
+    """Helper function to retrieve latitude, longitude, city, and state for a zip code."""
+    zip_info = zcdb.get(zip_code)
+    if zip_info:
+        return zip_info.latitude, zip_info.longitude, zip_info.city, zip_info.state
+    return np.nan, np.nan, np.nan, np.nan
+
+def zip_data_viz(responses):
+    zcdb = ZipCodeDatabase()
+    long_title = 'What is your zip code?'
+
+    # Validate zip codes
+    responses['is_zip'] = responses[long_title].apply(lambda value: bool(zcdb.get(value, None)))
+    responses['valid zips'] = responses.apply(lambda row: row[long_title] if row['is_zip'] else np.nan, axis=1)
+
+    # Filter valid zip codes
+    valid_zips = responses[responses['valid zips'].notna()]['valid zips']
+
+    # Get latitude, longitude, city, and state
+    location_data = valid_zips.apply(lambda zip_code: get_lat_long_city_state(zip_code, zcdb)).apply(pd.Series)
+    location_data.columns = ['Latitude', 'Longitude', 'City', 'State']
+
+    # Create DataFrame with Zip Code, City, and State
+    zip_city_state_df = pd.DataFrame({
+        'Zip Code': valid_zips.values,
+        'City': location_data['City'],
+        'State': location_data['State']
+    })
+
+    # Combine lat/lon with original responses
+    responses_with_location = pd.concat([responses, location_data], axis=1)
+
+    # Filter out rows with missing lat/lon values
+    valid_locations = responses_with_location.dropna(subset=['Latitude', 'Longitude'])
+
+    # Create a map centered around the first valid location
+    if not valid_locations.empty:
+        m = folium.Map(location=[valid_locations['Latitude'].iloc[0], valid_locations['Longitude'].iloc[0]], zoom_start=6)
+
+        # Add markers for each valid location
+        for _, row in valid_locations.iterrows():
+            folium.Marker([row['Latitude'], row['Longitude']], popup=f"{row[long_title]} - {row['City']}, {row['State']}").add_to(m)
+
+        # Save map
+        m.save('zip_code_map.html')
+
+    return zip_city_state_df  # Return the DataFrame with Zip, City, and State
 
 
 def update_survey_monkey_graphs(original_df, short_school_types_dict):
