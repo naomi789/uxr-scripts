@@ -3,6 +3,8 @@ import pandas as pd
 import requests
 from tqdm import tqdm
 import argparse
+import time
+
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Construct and follow GreatSchools redirect URLs.")
@@ -51,6 +53,7 @@ def follow_redirect(url):
     Follows a URL and returns the final redirected URL and any error encountered.
     """
     try:
+        time.sleep(5)  # 👈 Pause for 5 seconds before making the request
         response = requests.get(url, allow_redirects=True, timeout=10)
         return response.url, None
     except requests.RequestException as e:
@@ -80,7 +83,14 @@ def add_redirected_urls(df):
     return df
 
 def main():
-    args = parse_args()
+    # DEBUGGING: override CLI args manually
+    class Args:
+        input = 'input_urls.csv'
+        output = 'output_urls.csv'
+
+    args = Args()
+
+    # args = parse_args()
     df = get_data(args.input)
     df = add_constructed_urls(df)
     df = add_redirected_urls(df)
