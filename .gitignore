@@ -1,3 +1,5 @@
+# ignore private data from users
+/GS-school-id-to-url/pii.py
 # added manually:
 # ignore data visualizations as PNGs
 *.png
