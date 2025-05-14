@@ -145,7 +145,7 @@ def main():
         visualize_type_impression(df_type_impression, "selected school", short_school_types_dict, is_out_of_system)
 
     if run_everything:
-        consider_confidence_levels(responses)
+        consider_confidence_levels(responses, short_school_types_dict)
 
 
 def consider_confidence_levels(responses, short_school_types_dict):
