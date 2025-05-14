@@ -78,6 +78,9 @@ def clean_data(df_sm, df_gs, collector_dict, collectors_to_drop):
     merged_all = pd.concat([merged_by_id, merged_by_name], ignore_index=True)
     print('ahh')
 
+    # TODO: check for first & last name matching
+    # TODO: check 
+
     # TODO: check for bad data
     # Remove data from bad actors
     # columns_to_check = ["", ""]
