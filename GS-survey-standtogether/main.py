@@ -9,6 +9,7 @@ import folium
 
 def main():
     run_everything = False
+    run_zips = False
     # Convert CSVs to DataFrames
     collectors = csv_to_df("CSV/CollectorList.csv")
     collector_dict = collectors.set_index("CollectorID")["Title"].to_dict()
@@ -136,7 +137,7 @@ def main():
     if run_everything:
         update_survey_monkey_graphs(responses, short_school_types_dict)
 
-    if run_everything:
+    if run_zips:
         df_zip_city_state = zip_data_viz(responses)
         df_zip_city_state.to_csv("zip_city_state_data.csv", index=False)
 
@@ -824,10 +825,17 @@ def clean_data(df, collector_dict, collectors_to_drop):
 
     # Remove data from bad actors
     columns_to_check = ['Unnamed: 21', 'Unnamed: 35', 'Unnamed: 48', 'Unnamed: 60']
-    values_to_drop = ['Spy', 'Spy Schools', 'BIG BLACK OILY MEN', 'BIG OILY MEN', 'My Project 65443', 'im a kid.', 'hi',
+    round_1 = ['Spy', 'Spy Schools', 'BIG BLACK OILY MEN', 'BIG OILY MEN', 'My Project 65443', 'im a kid.', 'hi',
                       'drippy', 'alien school on mars', 'ZAKAYLA GILLESPIE', 'Swddv. SdssstszadrfsasdwqsZzz zx',
                       'other,pjap', 'College', 'no clue', 'ALIENS=EPIC', 'UFO AND ALIENS',
                       'you need rocket ship to go to mars']
+    round_2 = ['zsxcvbhjk', 'ipowjeow', 'I LIKE MY CHESS DRIPY BRUH', 'ZAAYLOVE', '1234', "erm I don't have kids lol",
+               'bRAIN rOT sigMA acDEMY', 'hi home my go bus school bus  417 3;20', 'Rrr348o', 'ur mom 360',
+               'I think u smell like poo and I hate hisd or should I say hsd and Mike miles', '123456789',
+               'MY DAUGHRTER WANTS TO GO TO MONROE MIDDLE SCHOOL', 'only use my way', 'qwertt'
+               'my kid is gay and i feel he will be bullied please beat anybody that looks at him', 'vd'
+               'Do not go to highland   ', 'cy-creek high school']
+    values_to_drop = round_1 + round_2
     df = df[~df[columns_to_check].apply(lambda row: row.isin(values_to_drop).any(), axis=1)]
     df.reset_index(drop=True, inplace=True)
     df = df.fillna("")
@@ -925,6 +933,5 @@ def box_whisker(df, group_by):
 
     # Display the plot
     plt.show()
-
 
 main()
